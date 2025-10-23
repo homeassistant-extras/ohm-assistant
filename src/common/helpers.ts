@@ -1,66 +1,184 @@
-import type { HomeAssistant, HassEntity } from '@hass/types';
+import { getDevice } from '@/delegates/retrievers/device';
+import { Config } from '@/types/config';
+import type { HomeAssistant } from '@hass/types';
 
-export const formatNumber = (
-  value: number,
-  locale: string = 'en-US',
-  options?: Intl.NumberFormatOptions,
-): string => {
-  return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-    ...options,
-  }).format(value);
-};
+export interface HistoryDataPoint {
+  timestamp: Date;
+  value: number;
+}
 
-export const getEntityState = (
+/**
+ * Fetch aggregated statistics for an entity
+ * This uses Home Assistant's statistics API which returns data aggregated into periods
+ * @param hass Home Assistant instance
+ * @param entityId Entity ID to fetch statistics for
+ * @param startTime Start timestamp
+ * @param endTime Optional end timestamp (defaults to now)
+ * @param period Aggregation period: '5minute', 'hour', 'day', 'month' (default: '5minute')
+ */
+export async function fetchEntityStatistics(
   hass: HomeAssistant,
   entityId: string,
-): HassEntity | undefined => {
-  return hass.states[entityId];
-};
+  startTime: Date | string,
+  endTime?: Date | string,
+  period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+): Promise<HistoryDataPoint[]> {
+  try {
+    // Check if entity exists first
+    if (!hass.states[entityId]) {
+      console.warn(`Entity ${entityId} not found in states`);
+      return [];
+    }
 
-export const getEntityStateValue = (
-  hass: HomeAssistant,
-  entityId: string,
-): number | undefined => {
-  const state = getEntityState(hass, entityId);
-  if (!state) return undefined;
+    // Convert dates to ISO strings
+    const start =
+      typeof startTime === 'string' ? startTime : startTime.toISOString();
+    const end = endTime
+      ? typeof endTime === 'string'
+        ? endTime
+        : endTime.toISOString()
+      : new Date().toISOString();
 
-  const value = parseFloat(state.state);
-  return isNaN(value) ? undefined : value;
-};
+    // Use WebSocket API for statistics
+    const statsData = await hass.callWS<
+      Record<
+        string,
+        Array<{
+          start: number;
+          end: number;
+          mean?: number;
+          min?: number;
+          max?: number;
+          sum?: number;
+          state?: number;
+        }>
+      >
+    >({
+      type: 'recorder/statistics_during_period',
+      start_time: start,
+      end_time: end,
+      statistic_ids: [entityId],
+      period: period,
+    });
 
-export const getEntityAttribute = (
-  hass: HomeAssistant,
-  entityId: string,
-  attribute: string,
-): any => {
-  const state = getEntityState(hass, entityId);
-  return state?.attributes[attribute];
-};
+    // Extract statistics for the entity
+    const entityStats = statsData[entityId];
+    if (!entityStats || entityStats.length === 0) {
+      console.warn(`No statistics data for ${entityId}`);
+      return [];
+    }
 
-export const formatPower = (watts: number, locale: string = 'en-US'): string => {
-  if (watts >= 1000) {
-    return `${formatNumber(watts / 1000, locale)} kW`;
+    const dataPoints: HistoryDataPoint[] = [];
+
+    for (const stat of entityStats) {
+      // Use mean if available, otherwise state, otherwise sum
+      const value =
+        stat.mean !== undefined
+          ? stat.mean
+          : stat.state !== undefined
+            ? stat.state
+            : stat.sum !== undefined
+              ? stat.sum
+              : null;
+
+      if (value !== null && !isNaN(value)) {
+        // The stat.start value can be in seconds or milliseconds depending on HA version
+        // Check if it's already in milliseconds (> year 2000 in seconds = 946684800)
+        const timestampMs =
+          stat.start > 946684800000 ? stat.start : stat.start * 1000;
+        dataPoints.push({
+          timestamp: new Date(timestampMs),
+          value,
+        });
+      }
+    }
+
+    return dataPoints;
+  } catch (error) {
+    console.error(`Failed to fetch statistics for ${entityId}:`, error);
+    return [];
   }
-  return `${formatNumber(watts, locale)} W`;
-};
+}
 
-export const formatEnergy = (kWh: number, locale: string = 'en-US'): string => {
-  if (kWh >= 1000) {
-    return `${formatNumber(kWh / 1000, locale)} MWh`;
-  }
-  return `${formatNumber(kWh, locale)} kWh`;
-};
+/**
+ * Fetch aggregated statistics for recent hours
+ * @param hass Home Assistant instance
+ * @param entityId Entity ID to fetch statistics for
+ * @param hours Number of hours to fetch
+ * @param period Aggregation period (default: '5minute')
+ */
+export async function fetchRecentStatistics(
+  hass: HomeAssistant,
+  entityId: string,
+  hours: number,
+  period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+): Promise<HistoryDataPoint[]> {
+  const now = new Date();
+  const start = new Date(now.getTime() - hours * 60 * 60 * 1000);
+  return fetchEntityStatistics(hass, entityId, start, now, period);
+}
 
-export const calculateCost = (
-  kWh: number,
-  costPerKWh: number,
-  locale: string = 'en-US',
-): string => {
-  const cost = kWh * costPerKWh;
-  return formatNumber(cost, locale, {
-    style: 'currency',
-    currency: 'USD',
+export interface PowerEnergyData {
+  powerData: HistoryDataPoint[];
+  energyData: HistoryDataPoint[];
+}
+
+/**
+ * Fetch power and energy data for the given entities
+ * @param hass Home Assistant instance
+ * @param config Configuration
+ * @param hours Number of hours to fetch (default: 24)
+ * @param period Aggregation period (default: '5minute')
+ */
+export async function fetchPowerEnergyData(
+  hass: HomeAssistant,
+  config: Config,
+  hours: number = 24,
+  period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+): Promise<PowerEnergyData> {
+  // Separate entities by device class
+  const powerEntities: string[] = [];
+  const energyEntities: string[] = [];
+
+  const entities = config.entities || getAreaEntities(hass, config.area);
+
+  entities.forEach((entityId) => {
+    const entity = hass.states[entityId];
+    if (!entity) return;
+
+    const deviceClass = entity.attributes.device_class;
+    if (deviceClass === 'power') {
+      powerEntities.push(entityId);
+    } else if (deviceClass === 'energy') {
+      energyEntities.push(entityId);
+    }
   });
+
+  // Fetch data for all power and energy entities
+  const powerPromises = powerEntities.map((entity) =>
+    fetchRecentStatistics(hass, entity, hours, period),
+  );
+  const energyPromises = energyEntities.map((entity) =>
+    fetchRecentStatistics(hass, entity, hours, period),
+  );
+
+  const [powerResults, energyResults] = await Promise.all([
+    Promise.all(powerPromises),
+    Promise.all(energyPromises),
+  ]);
+
+  return {
+    powerData: powerResults.flat(),
+    energyData: energyResults.flat(),
+  };
+}
+
+const getAreaEntities = (hass: HomeAssistant, areaId: string): string[] => {
+  const entities = Object.values(hass.entities).filter((entity) => {
+    const device = getDevice(hass.devices, entity.device_id);
+    const isInArea = [entity.area_id, device?.area_id].includes(areaId);
+    return isInArea;
+  });
+
+  return entities.map((e) => e.entity_id);
 };

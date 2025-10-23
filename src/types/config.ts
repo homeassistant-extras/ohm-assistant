@@ -1,9 +1,12 @@
-export interface ShockingCardConfig {
-  type: string;
-  power_entity?: string;
-  energy_entity?: string;
+export interface Config {
+  /** Area to automatically find energy/power entities from */
+  area: string;
+  entities?: string[];
   name?: string;
-  show_name?: boolean;
-  show_state?: boolean;
-  theme?: 'light' | 'dark' | 'auto';
+
+  /** Features to enable or disable functionality */
+  features?: Features[];
 }
+
+/** Features to enable or disable functionality */
+export type Features = 'hide_legend' | 'hide_name';

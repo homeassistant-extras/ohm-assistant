@@ -10,7 +10,7 @@ A modern, professional Home Assistant custom card for displaying electricity usa
 
 - 📊 **Dual Metric Display**: Shows both real-time power consumption (W) and daily energy usage (kWh)
 - 🎨 **Modern Design**: Clean, professional card design with gradient icons and smooth animations
-- 🌓 **Dark Mode Support**: Automatically adapts to Home Assistant's theme
+- 🌓 **Theme Support**: Automatically adapts to Home Assistant's theme
 - ⚡ **Live Updates**: Real-time data updates from your Home Assistant sensors
 - 🎯 **Easy Configuration**: Simple visual editor for configuration
 - 📱 **Responsive**: Adapts to different screen sizes
@@ -57,29 +57,27 @@ type: custom:shocking-card
 name: Living Room Electricity
 power_entity: sensor.living_room_15_1min
 energy_entity: sensor.living_room_15_1d
-show_name: true
-show_state: true
 ```
 
 ### Configuration Options
 
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | string | **Required** | Must be `custom:shocking-card` |
-| `name` | string | `Electricity Usage` | Card title |
-| `power_entity` | string | Optional | Entity ID for power sensor (should be in Watts) |
-| `energy_entity` | string | Optional | Entity ID for energy sensor (should be in kWh) |
-| `show_name` | boolean | `true` | Show/hide the card title |
-| `show_state` | boolean | `true` | Show/hide the state information |
+| Name            | Type   | Default             | Description                                     |
+| --------------- | ------ | ------------------- | ----------------------------------------------- |
+| `type`          | string | **Required**        | Must be `custom:shocking-card`                  |
+| `name`          | string | `Electricity Usage` | Card title                                      |
+| `power_entity`  | string | Optional            | Entity ID for power sensor (should be in Watts) |
+| `energy_entity` | string | Optional            | Entity ID for energy sensor (should be in kWh)  |
 
 ### Entity Requirements
 
 **Power Entity:**
+
 - `device_class: power`
 - `unit_of_measurement: W`
 - Example: `sensor.living_room_15_1min`
 
 **Energy Entity:**
+
 - `device_class: energy`
 - `unit_of_measurement: kWh`
 - Example: `sensor.living_room_15_1d`
@@ -101,8 +99,6 @@ type: custom:shocking-card
 name: Living Room Energy Monitor
 power_entity: sensor.living_room_15_1min
 energy_entity: sensor.living_room_15_1d
-show_name: true
-show_state: true
 ```
 
 ### Power Only
@@ -111,7 +107,6 @@ show_state: true
 type: custom:shocking-card
 name: Current Power Usage
 power_entity: sensor.power_consumption
-show_name: true
 ```
 
 ### Energy Only
@@ -120,12 +115,11 @@ show_name: true
 type: custom:shocking-card
 name: Today's Energy Usage
 energy_entity: sensor.energy_today
-show_name: true
 ```
 
 ## Screenshots
 
-*Coming soon*
+_Coming soon_
 
 ## Development
 
@@ -202,6 +196,7 @@ Inspired by the design patterns from the home-assistant-cards repository.
 ## Support
 
 If you find this card useful, please consider:
+
 - Starring the repository
 - Reporting issues
 - Contributing improvements

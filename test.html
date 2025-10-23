@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shocking Card - Test</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px;
+        background: #f5f5f5;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 32px;
+      }
+      shocking-card {
+        display: block;
+        margin-bottom: 24px;
+      }
+      .info {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .info h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      .info p {
+        color: #666;
+        line-height: 1.6;
+      }
+      .info code {
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Shocking Energy Card - Mock Data Preview</h1>
+
+      <div class="info">
+        <h2>About This Card</h2>
+        <p>
+          This card fetches and displays real energy consumption history from
+          Home Assistant with two datasets:
+        </p>
+        <ul>
+          <li>
+            <strong>1-Minute Data (Blue)</strong>: Shows power consumption in
+            Watts from <code>sensor.living_room_15_1min</code> over the last 24
+            hours.
+          </li>
+          <li>
+            <strong>Daily Data (Green)</strong>: Shows total energy consumption
+            in kWh from <code>sensor.living_room_15_1d</code> over the last 30
+            days.
+          </li>
+        </ul>
+        <p>
+          <strong>Note:</strong> This demo page won't work standalone - it needs
+          to be loaded in Home Assistant to access the history API.
+        </p>
+        <p>
+          To use: Copy <code>dist/shocking.js</code> to your Home Assistant
+          <code>www</code> folder and add the card to your dashboard.
+        </p>
+      </div>
+
+      <shocking-card></shocking-card>
+    </div>
+
+    <script type="module" src="dist/shocking.js"></script>
+  </body>
+</html>

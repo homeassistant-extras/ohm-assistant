@@ -1,28 +1,32 @@
-# Example .gitignore file for custom card.
-# An * ensures that everything will be ignored.
-*
+# Dependencies
+node_modules/
 
-# Don't ignore directories (so we can look inside them, for other files)
-!*/
+# Build output
+dist/
+.parcel-cache/
 
-# You can whitelist files/folders with !, these will not be ignored.
-!*.json
-!*.ts
-!.prettierrc
-!.nycrc
-!assets/**
-!dist/**
-!.github/**
-!.gitignore
-!*.md
-!LICENSE
-!sonar-project.properties
-!yarn.lock
+# Test coverage
+.nyc_output/
+coverage/
 
-# Ignore folders.
-node_modules
-dist
-coverage
-.vscode
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-.nyc_output
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local

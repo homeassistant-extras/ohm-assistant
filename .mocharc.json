@@ -1,6 +1,10 @@
 {
-  "require": ["ts-node/register", "mocha.setup.ts"],
+  "require": [
+    "ts-node/register",
+    "tsconfig-paths/register",
+    "./mocha.setup.ts"
+  ],
   "extensions": ["ts"],
   "spec": ["test/**/*.spec.ts"],
-  "node-option": ["loader=ts-node/esm"]
+  "watch-files": ["src/**/*.ts", "test/**/*.spec.ts"]
 }

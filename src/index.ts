@@ -1,37 +1,37 @@
-import { ShockingCard } from './card';
-import { ShockingCardEditor } from './editor';
-
-// Get version from package.json
-const version = '1.0.0';
+import { version } from '../package.json';
+import { Shocking } from './card';
+import { ShockingEditor } from './editor';
 
 // Register custom elements
-customElements.define('shocking-card', ShockingCard);
-customElements.define('shocking-card-editor', ShockingCardEditor);
+customElements.define('shocking-card', Shocking);
+customElements.define('shocking-card-editor', ShockingEditor);
 
-// Register with Home Assistant's card registry
 declare global {
   interface Window {
-    customCards?: Array<{
-      type: string;
-      name: string;
-      description: string;
-      preview?: boolean;
-      documentationURL?: string;
-    }>;
+    customCards: Array<Object>;
+    matchMedia: (query: string) => MediaQueryList;
   }
 }
 
+// Ensure the customCards array exists on the window object
 window.customCards = window.customCards || [];
+
 window.customCards.push({
-  type: 'custom:shocking-card',
-  name: 'Shocking Card',
-  description: 'A modern card for displaying electricity usage and power consumption',
+  // Unique identifier for the card type
+  type: 'shocking-card',
+
+  // Display name in the UI
+  name: 'Shocking Area Energy & Power Card',
+
+  // Card description for the UI
+  description:
+    'A modern card for displaying electricity usage and power consumption',
+
+  // Show a preview of the card in the UI
   preview: true,
-  documentationURL: 'https://github.com/username/shocking-card',
+
+  // URL for the card's documentation
+  documentationURL: 'https://github.com/homeassistant-extras/shocking',
 });
 
-console.info(
-  `%c⚡ Shocking Card - v${version} %c Loaded`,
-  'color: #ffd700; font-weight: bold; background: #1a1a1a; padding: 4px 8px; border-radius: 4px 0 0 4px;',
-  'color: #00bcd4; font-weight: bold; background: #1a1a1a; padding: 4px 8px; border-radius: 0 4px 4px 0;',
-);
+console.info(`%c🐱 Poat's Tools: shocking - ${version}`, 'color: #CFC493;');

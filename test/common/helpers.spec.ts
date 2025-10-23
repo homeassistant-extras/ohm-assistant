@@ -1,0 +1,451 @@
+import { expect } from 'chai';
+import { afterEach, beforeEach, describe, it } from 'mocha';
+import sinon from 'sinon';
+import {
+  fetchEntityStatistics,
+  fetchRecentStatistics,
+} from '../../src/common/helpers';
+import type { HomeAssistant } from '../../src/hass/types';
+
+describe('helpers', () => {
+  let mockHass: HomeAssistant;
+  let callWSStub: sinon.SinonStub;
+  let consoleWarnStub: sinon.SinonStub;
+  let consoleErrorStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    // Create a mock Home Assistant instance
+    callWSStub = sinon.stub();
+    mockHass = {
+      states: {},
+      callWS: callWSStub,
+    } as any;
+
+    // Stub console methods to suppress output during tests
+    consoleWarnStub = sinon.stub(console, 'warn');
+    consoleErrorStub = sinon.stub(console, 'error');
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  describe('fetchEntityStatistics', () => {
+    it('should return empty array when entity does not exist', async () => {
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'nonexistent.entity',
+        new Date(),
+      );
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should fetch statistics successfully with valid data', async () => {
+      // Mock entity exists
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      // Mock successful API response
+      const mockStatsData = {
+        'sensor.test_power': [
+          {
+            start: 1640995200, // 2022-01-01 00:00:00 in seconds
+            end: 1640995500,
+            mean: 100.5,
+            min: 95.0,
+            max: 105.0,
+          },
+          {
+            start: 1640995500,
+            end: 1640995800,
+            mean: 110.2,
+            min: 108.0,
+            max: 112.0,
+          },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const startTime = new Date('2022-01-01T00:00:00Z');
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        startTime,
+      );
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(2);
+      expect(result[0]).to.deep.include({
+        value: 100.5,
+      });
+      expect(result[1]).to.deep.include({
+        value: 110.2,
+      });
+      expect(result[0].timestamp).to.be.instanceOf(Date);
+      expect(result[1].timestamp).to.be.instanceOf(Date);
+    });
+
+    it('should handle different value types (mean, state, sum)', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      const mockStatsData = {
+        'sensor.test_power': [
+          {
+            start: 1640995200,
+            end: 1640995500,
+            mean: 100.0,
+          },
+          {
+            start: 1640995500,
+            end: 1640995800,
+            state: 200.0,
+          },
+          {
+            start: 1640995800,
+            end: 1640996100,
+            sum: 300.0,
+          },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        new Date(),
+      );
+
+      expect(result).to.have.length(3);
+      expect(result[0].value).to.equal(100.0);
+      expect(result[1].value).to.equal(200.0);
+      expect(result[2].value).to.equal(300.0);
+    });
+
+    it('should handle milliseconds timestamps correctly', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      const mockStatsData = {
+        'sensor.test_power': [
+          {
+            start: 1640995200000, // Already in milliseconds
+            end: 1640995500000,
+            mean: 100.0,
+          },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        new Date(),
+      );
+
+      expect(result).to.have.length(1);
+      expect(result[0].timestamp).to.be.instanceOf(Date);
+      expect(result[0].timestamp.getTime()).to.equal(1640995200000);
+    });
+
+    it('should handle seconds timestamps correctly', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      const mockStatsData = {
+        'sensor.test_power': [
+          {
+            start: 1640995200, // In seconds
+            end: 1640995500,
+            mean: 100.0,
+          },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        new Date(),
+      );
+
+      expect(result).to.have.length(1);
+      expect(result[0].timestamp).to.be.instanceOf(Date);
+      expect(result[0].timestamp.getTime()).to.equal(1640995200000);
+    });
+
+    it('should filter out invalid values', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      const mockStatsData = {
+        'sensor.test_power': [
+          {
+            start: 1640995200,
+            end: 1640995500,
+            mean: 100.0,
+          },
+          {
+            start: 1640995500,
+            end: 1640995800,
+            mean: NaN,
+          },
+          {
+            start: 1640995800,
+            end: 1640996100,
+            mean: null,
+          },
+          {
+            start: 1640996100,
+            end: 1640996400,
+            mean: 200.0,
+          },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        new Date(),
+      );
+
+      expect(result).to.have.length(2);
+      expect(result[0].value).to.equal(100.0);
+      expect(result[1].value).to.equal(200.0);
+    });
+
+    it('should return empty array when no statistics data', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        new Date(),
+      );
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should handle API errors gracefully', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.rejects(new Error('API Error'));
+
+      const result = await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        new Date(),
+      );
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should use correct API parameters', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      const startTime = new Date('2022-01-01T00:00:00Z');
+      const endTime = new Date('2022-01-02T00:00:00Z');
+
+      await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        startTime,
+        endTime,
+        'hour',
+      );
+
+      expect(callWSStub.calledOnce).to.be.true;
+      const callArgs = callWSStub.getCall(0).args[0];
+      expect(callArgs).to.deep.include({
+        type: 'recorder/statistics_during_period',
+        start_time: '2022-01-01T00:00:00.000Z',
+        end_time: '2022-01-02T00:00:00.000Z',
+        statistic_ids: ['sensor.test_power'],
+        period: 'hour',
+      });
+    });
+
+    it('should handle string dates correctly', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      await fetchEntityStatistics(
+        mockHass,
+        'sensor.test_power',
+        '2022-01-01T00:00:00Z',
+        '2022-01-02T00:00:00Z',
+      );
+
+      expect(callWSStub.calledOnce).to.be.true;
+      const callArgs = callWSStub.getCall(0).args[0];
+      expect(callArgs.start_time).to.equal('2022-01-01T00:00:00Z');
+      expect(callArgs.end_time).to.equal('2022-01-02T00:00:00Z');
+    });
+
+    it('should default end time to now when not provided', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      const startTime = new Date('2022-01-01T00:00:00Z');
+      const beforeCall = new Date();
+
+      await fetchEntityStatistics(mockHass, 'sensor.test_power', startTime);
+
+      const afterCall = new Date();
+      const callArgs = callWSStub.getCall(0).args[0];
+      const endTime = new Date(callArgs.end_time);
+
+      expect(endTime.getTime()).to.be.at.least(beforeCall.getTime());
+      expect(endTime.getTime()).to.be.at.most(afterCall.getTime());
+    });
+  });
+
+  describe('fetchRecentStatistics', () => {
+    it('should fetch statistics for the specified number of hours', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      const mockStatsData = {
+        'sensor.test_power': [
+          {
+            start: 1640995200,
+            end: 1640995500,
+            mean: 100.0,
+          },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const result = await fetchRecentStatistics(
+        mockHass,
+        'sensor.test_power',
+        24,
+      );
+
+      expect(result).to.be.an('array');
+      expect(callWSStub.calledOnce).to.be.true;
+
+      const callArgs = callWSStub.getCall(0).args[0];
+      const startTime = new Date(callArgs.start_time);
+      const endTime = new Date(callArgs.end_time);
+      const hoursDiff =
+        (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+
+      expect(hoursDiff).to.be.closeTo(24, 0.1);
+    });
+
+    it('should use default period of 5minute', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      await fetchRecentStatistics(mockHass, 'sensor.test_power', 12);
+
+      const callArgs = callWSStub.getCall(0).args[0];
+      expect(callArgs.period).to.equal('5minute');
+    });
+
+    it('should use custom period when provided', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      await fetchRecentStatistics(mockHass, 'sensor.test_power', 12, 'hour');
+
+      const callArgs = callWSStub.getCall(0).args[0];
+      expect(callArgs.period).to.equal('hour');
+    });
+
+    it('should handle different hour values correctly', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.resolves({});
+
+      // Test 1 hour
+      await fetchRecentStatistics(mockHass, 'sensor.test_power', 1);
+      let callArgs = callWSStub.getCall(0).args[0];
+      let startTime = new Date(callArgs.start_time);
+      let endTime = new Date(callArgs.end_time);
+      let hoursDiff =
+        (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      expect(hoursDiff).to.be.closeTo(1, 0.1);
+
+      callWSStub.reset();
+
+      // Test 48 hours
+      await fetchRecentStatistics(mockHass, 'sensor.test_power', 48);
+      callArgs = callWSStub.getCall(0).args[0];
+      startTime = new Date(callArgs.start_time);
+      endTime = new Date(callArgs.end_time);
+      hoursDiff = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      expect(hoursDiff).to.be.closeTo(48, 0.1);
+    });
+
+    it('should return empty array when entity does not exist', async () => {
+      const result = await fetchRecentStatistics(
+        mockHass,
+        'nonexistent.entity',
+        24,
+      );
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should handle API errors gracefully', async () => {
+      mockHass.states['sensor.test_power'] = {
+        entity_id: 'sensor.test_power',
+      } as any;
+
+      callWSStub.rejects(new Error('API Error'));
+
+      const result = await fetchRecentStatistics(
+        mockHass,
+        'sensor.test_power',
+        24,
+      );
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+  });
+});

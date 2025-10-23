@@ -17,6 +17,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@config/*": ["./src/config/*"],
+      "@delegates/*": ["./src/delegates/*"],
+      "@helpers/*": ["./src/helpers/*"],
+      "@html/*": ["./src/html/*"],
       "@type/*": ["./src/types/*"],
       "@common/*": ["./src/common/*"],
       "@hass/*": ["./src/hass/*"]
