@@ -54,6 +54,18 @@ export class AreaEnergy extends LitElement {
   private _energyEntities: EntityState[] = [];
 
   /**
+   * Count of active lights in the area
+   */
+  @state()
+  private _activeLights = 0;
+
+  /**
+   * Count of active switches in the area
+   */
+  @state()
+  private _activeSwitches = 0;
+
+  /**
    * The Home Assistant instance
    * Not marked state.
    */
@@ -91,13 +103,19 @@ export class AreaEnergy extends LitElement {
    * @param {HomeAssistant} hass - The Home Assistant instance
    */
   set hass(hass: HomeAssistant) {
-    const { powerEntities, energyEntities } = getZapped(hass, this._config);
+    const { powerEntities, energyEntities, activeLights, activeSwitches } = getZapped(hass, this._config);
 
     if (!equal(powerEntities, this._powerEntities)) {
       this._powerEntities = powerEntities;
     }
     if (!equal(energyEntities, this._energyEntities)) {
       this._energyEntities = energyEntities;
+    }
+    if (activeLights !== this._activeLights) {
+      this._activeLights = activeLights;
+    }
+    if (activeSwitches !== this._activeSwitches) {
+      this._activeSwitches = activeSwitches;
     }
 
     this._hass = hass;
@@ -144,8 +162,26 @@ export class AreaEnergy extends LitElement {
       `${area?.name || this._config.area} Energy Consumption`;
 
     return html`
-      <div>
+      <div class="header">
         <h2 class="card-title">${areaName}</h2>
+        <div class="status-badges">
+          ${this._activeLights > 0
+            ? html`
+              <div class="status-item">
+                <ha-icon icon="mdi:lightbulb"></ha-icon>
+                <span class="status-count">${this._activeLights}</span>
+              </div>
+            `
+            : nothing}
+          ${this._activeSwitches > 0
+            ? html`
+              <div class="status-item">
+                <ha-icon icon="mdi:light-switch"></ha-icon>
+                <span class="status-count">${this._activeSwitches}</span>
+              </div>
+            `
+            : nothing}
+        </div>
       </div>
     `;
   }

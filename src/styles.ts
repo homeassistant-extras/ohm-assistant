@@ -26,9 +26,43 @@ export const styles = css`
     padding: 16px;
   }
 
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   .card-title {
     font-size: 1.2rem;
     font-weight: 500;
+    margin: 0;
+  }
+
+  .status-badges {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .status-item ha-icon {
+    --mdc-icon-size: 18px;
+    color: var(--primary-text-color);
+    opacity: 0.7;
+  }
+
+  .status-count {
+    font-size: 0.875rem;
+    color: var(--primary-text-color);
+    opacity: 0.8;
   }
 
   .error {

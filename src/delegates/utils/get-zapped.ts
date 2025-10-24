@@ -1,5 +1,6 @@
 import { hasFeature } from '@/config/feature';
 import { EntityState } from '@/types/entity';
+import { stateActive } from '@hass/common/entity/state_active';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
 import { getDevice } from '../retrievers/device';
@@ -8,6 +9,8 @@ import { getState } from '../retrievers/state';
 interface ZappedResult {
   powerEntities: EntityState[];
   energyEntities: EntityState[];
+  activeLights: number;
+  activeSwitches: number;
 }
 
 export const getZapped = (
@@ -19,6 +22,8 @@ export const getZapped = (
   // Separate entities by device class
   const powerEntities: EntityState[] = [];
   const energyEntities: EntityState[] = [];
+  let activeLights = 0;
+  let activeSwitches = 0;
 
   // Process all entities in the area
   Object.values(hass.entities).forEach((entity) => {
@@ -34,6 +39,18 @@ export const getZapped = (
 
     const state = getState(hass.states, entity.entity_id);
     if (!state) return;
+
+    // Count active lights and switches in the area
+    if ((isInArea || isConfigEntity)) {
+      const hassState = hass.states[entity.entity_id];
+      if (hassState) {
+        if (state.domain === 'light' && stateActive(hassState)) {
+          activeLights++;
+        } else if (state.domain === 'switch' && stateActive(hassState)) {
+          activeSwitches++;
+        }
+      }
+    }
 
     if (isConfigEntity && state.attributes.device_class === 'power') {
       powerEntities.push(state);
@@ -56,5 +73,7 @@ export const getZapped = (
   return {
     powerEntities,
     energyEntities,
+    activeLights,
+    activeSwitches,
   };
 };
