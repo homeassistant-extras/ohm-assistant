@@ -1,4 +1,4 @@
-# ⚡ Shocking Card
+# ⚡ Ohm Assistant Card
 
 A modern, professional Home Assistant custom card for displaying electricity usage and power consumption data.
 
@@ -22,19 +22,19 @@ A modern, professional Home Assistant custom card for displaying electricity usa
 1. Open HACS in your Home Assistant instance
 2. Click on "Frontend"
 3. Click the "+" button
-4. Search for "Shocking Card"
+4. Search for "Ohm Assistant Card"
 5. Click "Install"
 6. Restart Home Assistant
 
 ### Manual Installation
 
-1. Download `shocking-card.js` from the latest release
+1. Download `ohm-assistant.js` from the latest release
 2. Copy it to your `config/www` folder
 3. Add a resource reference in your Lovelace configuration:
 
 ```yaml
 resources:
-  - url: /local/shocking-card.js
+  - url: /local/ohm-assistant.js
     type: module
 ```
 
@@ -47,13 +47,13 @@ resources:
 The easiest way to configure the card is through the visual editor:
 
 1. Add a new card to your dashboard
-2. Search for "Shocking Card"
+2. Search for "Ohm Assistant Card"
 3. Configure the entities and options
 
 ### YAML Configuration
 
 ```yaml
-type: custom:shocking-card
+type: custom:area-energy-card
 name: Living Room Electricity
 power_entity: sensor.living_room_15_1min
 energy_entity: sensor.living_room_15_1d
@@ -63,7 +63,7 @@ energy_entity: sensor.living_room_15_1d
 
 | Name            | Type   | Default             | Description                                     |
 | --------------- | ------ | ------------------- | ----------------------------------------------- |
-| `type`          | string | **Required**        | Must be `custom:shocking-card`                  |
+| `type`          | string | **Required**        | Must be `custom:area-energy-card`               |
 | `name`          | string | `Electricity Usage` | Card title                                      |
 | `power_entity`  | string | Optional            | Entity ID for power sensor (should be in Watts) |
 | `energy_entity` | string | Optional            | Entity ID for energy sensor (should be in kWh)  |
@@ -87,7 +87,7 @@ energy_entity: sensor.living_room_15_1d
 ### Minimal Configuration
 
 ```yaml
-type: custom:shocking-card
+type: custom:area-energy-card
 power_entity: sensor.power_consumption
 energy_entity: sensor.energy_today
 ```
@@ -95,7 +95,7 @@ energy_entity: sensor.energy_today
 ### Full Configuration
 
 ```yaml
-type: custom:shocking-card
+type: custom:area-energy-card
 name: Living Room Energy Monitor
 power_entity: sensor.living_room_15_1min
 energy_entity: sensor.living_room_15_1d
@@ -104,7 +104,7 @@ energy_entity: sensor.living_room_15_1d
 ### Power Only
 
 ```yaml
-type: custom:shocking-card
+type: custom:area-energy-card
 name: Current Power Usage
 power_entity: sensor.power_consumption
 ```
@@ -112,7 +112,7 @@ power_entity: sensor.power_consumption
 ### Energy Only
 
 ```yaml
-type: custom:shocking-card
+type: custom:area-energy-card
 name: Today's Energy Usage
 energy_entity: sensor.energy_today
 ```
@@ -131,7 +131,7 @@ _Coming soon_
 ### Setup
 
 ```bash
-cd shocking
+cd ohm-assistant
 yarn install
 ```
 

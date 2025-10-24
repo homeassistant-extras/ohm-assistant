@@ -1,9 +1,9 @@
 {
-  "name": "shocking",
+  "name": "ohm-assistant",
   "version": "0.0.1",
   "description": "A modern Home Assistant card for displaying energy usage",
   "source": "src/index.ts",
-  "module": "dist/shocking.js",
+  "module": "dist/ohm-assistant.js",
   "author": "Patrick Masters",
   "license": "MIT",
   "keywords": [

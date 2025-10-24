@@ -1,10 +1,10 @@
 import { version } from '../package.json';
-import { Shocking } from './card';
-import { ShockingEditor } from './editor';
+import { AreaEnergy } from './card';
+import { AreaEnergyEditor } from './editor';
 
 // Register custom elements
-customElements.define('shocking-card', Shocking);
-customElements.define('shocking-card-editor', ShockingEditor);
+customElements.define('area-energy-card', AreaEnergy);
+customElements.define('area-energy-card-editor', AreaEnergyEditor);
 
 declare global {
   interface Window {
@@ -18,10 +18,10 @@ window.customCards = window.customCards || [];
 
 window.customCards.push({
   // Unique identifier for the card type
-  type: 'shocking-card',
+  type: 'area-energy-card',
 
   // Display name in the UI
-  name: 'Shocking Area Energy & Power Card',
+  name: 'Ohm Assistant Area Energy & Power Card',
 
   // Card description for the UI
   description:
@@ -31,7 +31,10 @@ window.customCards.push({
   preview: true,
 
   // URL for the card's documentation
-  documentationURL: 'https://github.com/homeassistant-extras/shocking',
+  documentationURL: 'https://github.com/homeassistant-extras/ohm-assistant',
 });
 
-console.info(`%c🐱 Poat's Tools: shocking - ${version}`, 'color: #CFC493;');
+console.info(
+  `%c🐱 Poat's Tools: ohm-assistant - ${version}`,
+  'color: #CFC493;',
+);

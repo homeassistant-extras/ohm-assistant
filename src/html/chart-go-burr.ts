@@ -1,3 +1,4 @@
+import { getEntityColor } from '@common/colors';
 import type { HistoryDataPoint } from '@common/helpers';
 import {
   Chart,
@@ -14,6 +15,100 @@ import {
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 
+// Gradient cache for performance
+let powerGradient: CanvasGradient | null = null;
+let energyGradient: CanvasGradient | null = null;
+let lastChartWidth = 0;
+let lastChartHeight = 0;
+let lastPowerLineType: string | null = null;
+let lastEnergyLineType: string | null = null;
+
+/**
+ * Creates a power gradient for the chart
+ */
+function getPowerGradient(
+  ctx: CanvasRenderingContext2D,
+  chartArea: { left: number; right: number; top: number; bottom: number },
+  lineType: 'normal' | 'gradient' | 'gradient_no_fill' = 'normal',
+): CanvasGradient {
+  const chartWidth = chartArea.right - chartArea.left;
+  const chartHeight = chartArea.bottom - chartArea.top;
+
+  if (
+    !powerGradient ||
+    lastChartWidth !== chartWidth ||
+    lastChartHeight !== chartHeight ||
+    lastPowerLineType !== lineType
+  ) {
+    lastChartWidth = chartWidth;
+    lastChartHeight = chartHeight;
+    lastPowerLineType = lineType;
+    powerGradient = ctx.createLinearGradient(
+      0,
+      chartArea.bottom,
+      0,
+      chartArea.top,
+    );
+
+    if (lineType === 'gradient_no_fill') {
+      // Cool colors at bottom, warm colors at top
+      powerGradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)'); // Blue at bottom
+      powerGradient.addColorStop(0.3, 'rgba(34, 197, 94, 0.8)'); // Green in lower middle
+      powerGradient.addColorStop(0.6, 'rgba(251, 191, 36, 0.8)'); // Yellow in upper middle
+      powerGradient.addColorStop(1, 'rgba(239, 68, 68, 0.8)'); // Red at top
+    } else {
+      // Original blue gradient
+      powerGradient.addColorStop(0, 'rgba(59, 130, 246, 0.1)'); // Blue at bottom
+      powerGradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.6)'); // Blue in middle
+      powerGradient.addColorStop(1, 'rgba(59, 130, 246, 1)'); // Blue at top
+    }
+  }
+  return powerGradient;
+}
+
+/**
+ * Creates an energy gradient for the chart
+ */
+function getEnergyGradient(
+  ctx: CanvasRenderingContext2D,
+  chartArea: { left: number; right: number; top: number; bottom: number },
+  lineType: 'normal' | 'gradient' | 'gradient_no_fill' = 'normal',
+): CanvasGradient {
+  const chartWidth = chartArea.right - chartArea.left;
+  const chartHeight = chartArea.bottom - chartArea.top;
+
+  if (
+    !energyGradient ||
+    lastChartWidth !== chartWidth ||
+    lastChartHeight !== chartHeight ||
+    lastEnergyLineType !== lineType
+  ) {
+    lastChartWidth = chartWidth;
+    lastChartHeight = chartHeight;
+    lastEnergyLineType = lineType;
+    energyGradient = ctx.createLinearGradient(
+      0,
+      chartArea.bottom,
+      0,
+      chartArea.top,
+    );
+
+    if (lineType === 'gradient_no_fill') {
+      // Cool colors at bottom, warm colors at top
+      energyGradient.addColorStop(0, 'rgba(6, 182, 212, 0.8)'); // Cyan at bottom
+      energyGradient.addColorStop(0.3, 'rgba(34, 197, 94, 0.8)'); // Green in lower middle
+      energyGradient.addColorStop(0.6, 'rgba(251, 191, 36, 0.8)'); // Yellow in upper middle
+      energyGradient.addColorStop(1, 'rgba(239, 68, 68, 0.8)'); // Red at top
+    } else {
+      // Original green gradient
+      energyGradient.addColorStop(0, 'rgba(16, 185, 129, 0.1)'); // Green at bottom
+      energyGradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.6)'); // Green in middle
+      energyGradient.addColorStop(1, 'rgba(16, 185, 129, 1)'); // Green at top
+    }
+  }
+  return energyGradient;
+}
+
 // Register Chart.js components
 Chart.register(
   LineController,
@@ -27,15 +122,23 @@ Chart.register(
   Filler,
 );
 
+export interface EntityData {
+  entityId: string;
+  data: HistoryDataPoint[];
+}
+
 export interface ChartData {
-  powerData: HistoryDataPoint[];
-  energyData: HistoryDataPoint[];
+  powerData: EntityData[];
+  energyData: EntityData[];
 }
 
 export interface ChartOptions {
   responsive?: boolean;
   maintainAspectRatio?: boolean;
   showLegend?: boolean;
+  hideXAxis?: boolean;
+  hideYAxis?: boolean;
+  lineType?: 'normal' | 'gradient' | 'gradient_no_fill' | 'no_fill';
 }
 
 /**
@@ -53,50 +156,115 @@ export function createChartConfig(
     responsive = true,
     maintainAspectRatio = false,
     showLegend = false,
+    hideXAxis = false,
+    hideYAxis = false,
+    lineType = 'normal',
   } = options;
 
+  // Use smooth curves with stepped lines for energy data
+  const powerTension = 0.4; // smooth curves for power
+  const energyTension = 0; // straight lines for energy
+  const powerStepped = false; // smooth for power
+  const energyStepped = 'before'; // stepped for energy
+
   // Prepare datasets
-  const datasets = [];
+  const datasets: any[] = [];
 
-  // Power data (last 24 hours) - shown as a line
-  if (powerData.length > 0) {
-    const powerChartData = powerData.map((d) => ({
-      x: d.timestamp.getTime(),
-      y: d.value,
-    }));
-    datasets.push({
-      label: 'Power (W)',
-      data: powerChartData,
-      borderColor: 'rgba(59, 130, 246, 0.8)',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      borderWidth: 2,
-      fill: true,
-      tension: 0.4,
-      pointRadius: 0,
-      pointHoverRadius: 4,
-      yAxisID: 'y',
-    });
-  }
+  // Power data - create separate dataset for each power entity
+  powerData.forEach((entityData, index) => {
+    if (entityData.data.length > 0) {
+      const powerChartData = entityData.data.map((d) => ({
+        x: d.timestamp.getTime(),
+        y: d.value,
+      }));
 
-  // Energy data (last 24 hours, 5-min aggregated) - shown as bars/line
-  if (energyData.length > 0) {
-    const energyChartData = energyData.map((d) => ({
-      x: d.timestamp.getTime(),
-      y: d.value,
-    }));
-    datasets.push({
-      label: 'Energy (kWh)',
-      data: energyChartData,
-      borderColor: 'rgba(16, 185, 129, 0.8)',
-      backgroundColor: 'rgba(16, 185, 129, 0.2)',
-      borderWidth: 2,
-      fill: true,
-      tension: 0.4,
-      pointRadius: 0,
-      pointHoverRadius: 4,
-      yAxisID: 'y1',
-    });
-  }
+      const entityColor = getEntityColor(index, 'power', powerData.length);
+
+      datasets.push({
+        label: `${entityData.entityId} (W)`,
+        data: powerChartData,
+        borderColor:
+          lineType === 'gradient' || lineType === 'gradient_no_fill'
+            ? function (context: any) {
+                const chart = context.chart;
+                const { ctx, chartArea } = chart;
+                if (!chartArea) {
+                  return entityColor;
+                }
+                return getPowerGradient(ctx, chartArea, lineType);
+              }
+            : entityColor,
+        backgroundColor:
+          lineType === 'gradient'
+            ? function (context: any) {
+                const chart = context.chart;
+                const { ctx, chartArea } = chart;
+                if (!chartArea) {
+                  return entityColor.replace('0.8', '0.1');
+                }
+                return getPowerGradient(ctx, chartArea, lineType);
+              }
+            : lineType === 'gradient_no_fill' || lineType === 'no_fill'
+              ? 'transparent'
+              : entityColor.replace('0.8', '0.1'),
+        borderWidth: 2,
+        fill: lineType !== 'gradient_no_fill' && lineType !== 'no_fill',
+        tension: powerTension,
+        stepped: powerStepped,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        yAxisID: 'y',
+      });
+    }
+  });
+
+  // Energy data - create separate dataset for each energy entity
+  energyData.forEach((entityData, index) => {
+    if (entityData.data.length > 0) {
+      const energyChartData = entityData.data.map((d) => ({
+        x: d.timestamp.getTime(),
+        y: d.value,
+      }));
+
+      const entityColor = getEntityColor(index, 'energy', energyData.length);
+
+      datasets.push({
+        label: `${entityData.entityId} (kWh)`,
+        data: energyChartData,
+        borderColor:
+          lineType === 'gradient' || lineType === 'gradient_no_fill'
+            ? function (context: any) {
+                const chart = context.chart;
+                const { ctx, chartArea } = chart;
+                if (!chartArea) {
+                  return entityColor;
+                }
+                return getEnergyGradient(ctx, chartArea, lineType);
+              }
+            : entityColor,
+        backgroundColor:
+          lineType === 'gradient'
+            ? function (context: any) {
+                const chart = context.chart;
+                const { ctx, chartArea } = chart;
+                if (!chartArea) {
+                  return entityColor.replace('0.8', '0.2');
+                }
+                return getEnergyGradient(ctx, chartArea, lineType);
+              }
+            : lineType === 'gradient_no_fill' || lineType === 'no_fill'
+              ? 'transparent'
+              : entityColor.replace('0.8', '0.2'),
+        borderWidth: 2,
+        fill: lineType !== 'gradient_no_fill' && lineType !== 'no_fill',
+        tension: energyTension,
+        stepped: energyStepped,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        yAxisID: 'y1',
+      });
+    }
+  });
 
   return {
     type: 'line',
@@ -132,6 +300,7 @@ export function createChartConfig(
       scales: {
         x: {
           type: 'time',
+          display: !hideXAxis,
           time: {
             unit: 'hour',
             displayFormats: {
@@ -141,9 +310,11 @@ export function createChartConfig(
           },
           grid: {
             color: 'rgba(0, 0, 0, 0.05)',
+            display: !hideXAxis,
           },
           ticks: {
             color: '#666',
+            display: !hideXAxis,
             callback: function (value, index, ticks) {
               const date = new Date(value);
               const hours = date.getHours();
@@ -168,34 +339,38 @@ export function createChartConfig(
         },
         y: {
           type: 'linear',
-          display: true,
+          display: !hideYAxis,
           position: 'left',
           title: {
-            display: true,
+            display: !hideYAxis,
             text: 'Power (W)',
             color: 'rgba(59, 130, 246, 0.8)',
           },
           grid: {
             color: 'rgba(0, 0, 0, 0.05)',
+            display: !hideYAxis,
           },
           ticks: {
             color: '#666',
+            display: !hideYAxis,
           },
         },
         y1: {
           type: 'linear',
-          display: true,
+          display: !hideYAxis,
           position: 'right',
           title: {
-            display: true,
+            display: !hideYAxis,
             text: 'Energy (kWh)',
             color: 'rgba(16, 185, 129, 0.8)',
           },
           grid: {
             drawOnChartArea: false,
+            display: !hideYAxis,
           },
           ticks: {
             color: '#666',
+            display: !hideYAxis,
           },
         },
       },

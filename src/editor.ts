@@ -5,7 +5,7 @@ import { state } from 'lit/decorators.js';
 import { fireEvent } from './hass/common/dom/fire_event';
 import { HaFormSchema } from './hass/components/ha-form/types';
 
-export class ShockingEditor extends LitElement {
+export class AreaEnergyEditor extends LitElement {
   @state()
   private _config!: Config;
 
@@ -50,19 +50,115 @@ export class ShockingEditor extends LitElement {
           },
         ],
       },
-
       {
         name: 'entities',
         label: 'Entities',
-        required: true,
-        selector: {
-          entity: {
-            multiple: true,
-            filter: {
-              device_class: ['power', 'energy'],
+        type: 'expandable' as const,
+        flatten: true,
+        icon: 'mdi:devices',
+        schema: [
+          {
+            name: 'entities',
+            label: 'Entities',
+            required: true,
+            selector: {
+              entity: {
+                multiple: true,
+                filter: {
+                  device_class: ['power', 'energy'],
+                },
+              },
             },
           },
-        },
+        ],
+      },
+      {
+        name: 'chart',
+        label: 'Chart',
+        type: 'expandable' as const,
+        icon: 'mdi:chart-line',
+        schema: [
+          {
+            name: 'line_type',
+            label: 'Line Type',
+            required: false,
+            selector: {
+              select: {
+                mode: 'dropdown' as const,
+                options: [
+                  {
+                    label: 'Normal (Default)',
+                    value: 'normal',
+                  },
+                  {
+                    label: 'Gradient',
+                    value: 'gradient',
+                  },
+                  {
+                    label: 'Gradient No Fill',
+                    value: 'gradient_no_fill',
+                  },
+                  {
+                    label: 'No Fill',
+                    value: 'no_fill',
+                  },
+                ],
+              },
+            },
+          },
+          {
+            name: 'legend_style',
+            label: 'Legend Style',
+            required: false,
+            selector: {
+              select: {
+                mode: 'dropdown' as const,
+                options: [
+                  {
+                    label: 'Entities (Default)',
+                    value: 'entities',
+                  },
+                  {
+                    label: 'Compact',
+                    value: 'compact',
+                  },
+                  {
+                    label: 'None',
+                    value: 'none',
+                  },
+                ],
+              },
+            },
+          },
+          {
+            name: 'axis_style',
+            label: 'Axis Style',
+            required: false,
+            selector: {
+              select: {
+                mode: 'dropdown' as const,
+                options: [
+                  {
+                    label: 'All (Default)',
+                    value: 'all',
+                  },
+                  {
+                    label: 'X Only',
+                    value: 'x_only',
+                  },
+                  {
+                    label: 'Y Only',
+                    value: 'y_only',
+                  },
+                  {
+                    label: 'None',
+                    value: 'none',
+                  },
+                ],
+              },
+            },
+          },
+        ],
       },
       {
         name: 'features',
@@ -81,12 +177,12 @@ export class ShockingEditor extends LitElement {
                 mode: 'list' as const,
                 options: [
                   {
-                    label: 'Hide Legend',
-                    value: 'hide_legend',
-                  },
-                  {
                     label: 'Hide Name',
                     value: 'hide_name',
+                  },
+                  {
+                    label: 'Exclude Default Entities',
+                    value: 'exclude_default_entities',
                   },
                 ],
               },

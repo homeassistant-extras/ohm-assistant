@@ -20,9 +20,9 @@ import { EntityState } from './types/entity';
 const equal = require('fast-deep-equal');
 
 /**
- * Shocking Energy & Power Card
+ * Ohm Assistant Energy & Power Card
  */
-export class Shocking extends LitElement {
+export class AreaEnergy extends LitElement {
   /**
    * The configuration for the card
    */
@@ -122,13 +122,13 @@ export class Shocking extends LitElement {
         <div class="chart-container">
           <canvas id="energyChart"></canvas>
         </div>
-        ${!this._loading && this._currentData
-          ? renderLegend(
-              this._config,
-              this._powerEntities,
-              this._energyEntities,
-            )
-          : ''}
+        ${!this._loading &&
+        renderLegend(
+          this._hass,
+          this._config,
+          this._powerEntities,
+          this._energyEntities,
+        )}
       </ha-card>
     `;
   }
@@ -155,7 +155,6 @@ export class Shocking extends LitElement {
   }
 
   private async _initChart(): Promise<void> {
-    console.log('initChart');
     if (!this._hass) return;
 
     this._loading = true;
@@ -165,7 +164,8 @@ export class Shocking extends LitElement {
       // Fetch power and energy data
       const data = await fetchPowerEnergyData(
         this._hass,
-        this._config,
+        this._powerEntities,
+        this._energyEntities,
         24,
         '5minute',
       );
@@ -199,10 +199,16 @@ export class Shocking extends LitElement {
         energyData: data.energyData,
       };
 
+      const legendStyle = this._config.chart?.legend_style || 'entities';
+      const axisStyle = this._config.chart?.axis_style || 'all';
+
       this._chart = createChart(canvas, chartData, {
         responsive: true,
         maintainAspectRatio: false,
-        showLegend: false,
+        showLegend: legendStyle === 'compact',
+        hideXAxis: axisStyle === 'y_only' || axisStyle === 'none',
+        hideYAxis: axisStyle === 'x_only' || axisStyle === 'none',
+        lineType: this._config.chart?.line_type || 'normal',
       });
     } catch (error) {
       console.error('Failed to fetch history:', error);
@@ -214,7 +220,7 @@ export class Shocking extends LitElement {
 
   // card configuration
   static getConfigElement() {
-    return document.createElement('shocking-card-editor');
+    return document.createElement('area-energy-card-editor');
   }
 
   static async getStubConfig(hass: HomeAssistant): Promise<Config> {

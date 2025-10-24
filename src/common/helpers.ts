@@ -1,5 +1,5 @@
 import { getDevice } from '@/delegates/retrievers/device';
-import { Config } from '@/types/config';
+import { EntityState } from '@/types/entity';
 import type { HomeAssistant } from '@hass/types';
 
 export interface HistoryDataPoint {
@@ -24,12 +24,6 @@ export async function fetchEntityStatistics(
   period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
 ): Promise<HistoryDataPoint[]> {
   try {
-    // Check if entity exists first
-    if (!hass.states[entityId]) {
-      console.warn(`Entity ${entityId} not found in states`);
-      return [];
-    }
-
     // Convert dates to ISO strings
     const start =
       typeof startTime === 'string' ? startTime : startTime.toISOString();
@@ -118,9 +112,14 @@ export async function fetchRecentStatistics(
   return fetchEntityStatistics(hass, entityId, start, now, period);
 }
 
+export interface EntityData {
+  entityId: string;
+  data: HistoryDataPoint[];
+}
+
 export interface PowerEnergyData {
-  powerData: HistoryDataPoint[];
-  energyData: HistoryDataPoint[];
+  powerData: EntityData[];
+  energyData: EntityData[];
 }
 
 /**
@@ -132,34 +131,17 @@ export interface PowerEnergyData {
  */
 export async function fetchPowerEnergyData(
   hass: HomeAssistant,
-  config: Config,
+  powerEntities: EntityState[],
+  energyEntities: EntityState[],
   hours: number = 24,
   period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
 ): Promise<PowerEnergyData> {
-  // Separate entities by device class
-  const powerEntities: string[] = [];
-  const energyEntities: string[] = [];
-
-  const entities = config.entities || getAreaEntities(hass, config.area);
-
-  entities.forEach((entityId) => {
-    const entity = hass.states[entityId];
-    if (!entity) return;
-
-    const deviceClass = entity.attributes.device_class;
-    if (deviceClass === 'power') {
-      powerEntities.push(entityId);
-    } else if (deviceClass === 'energy') {
-      energyEntities.push(entityId);
-    }
-  });
-
   // Fetch data for all power and energy entities
   const powerPromises = powerEntities.map((entity) =>
-    fetchRecentStatistics(hass, entity, hours, period),
+    fetchRecentStatistics(hass, entity.entity_id, hours, period),
   );
   const energyPromises = energyEntities.map((entity) =>
-    fetchRecentStatistics(hass, entity, hours, period),
+    fetchRecentStatistics(hass, entity.entity_id, hours, period),
   );
 
   const [powerResults, energyResults] = await Promise.all([
@@ -168,8 +150,14 @@ export async function fetchPowerEnergyData(
   ]);
 
   return {
-    powerData: powerResults.flat(),
-    energyData: energyResults.flat(),
+    powerData: powerEntities.map((entity, index) => ({
+      entityId: entity.entity_id,
+      data: powerResults[index] || [],
+    })),
+    energyData: energyEntities.map((entity, index) => ({
+      entityId: entity.entity_id,
+      data: energyResults[index] || [],
+    })),
   };
 }
 

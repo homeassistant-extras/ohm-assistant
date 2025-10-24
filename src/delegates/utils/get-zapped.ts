@@ -1,3 +1,4 @@
+import { hasFeature } from '@/config/feature';
 import { EntityState } from '@/types/entity';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
@@ -13,6 +14,8 @@ export const getZapped = (
   hass: HomeAssistant,
   config: Config,
 ): ZappedResult => {
+  const skipDefaultEntities = hasFeature(config, 'exclude_default_entities');
+
   // Separate entities by device class
   const powerEntities: EntityState[] = [];
   const energyEntities: EntityState[] = [];
@@ -31,6 +34,17 @@ export const getZapped = (
 
     const state = getState(hass.states, entity.entity_id);
     if (!state) return;
+
+    if (isConfigEntity && state.attributes.device_class === 'power') {
+      powerEntities.push(state);
+      return;
+    } else if (isConfigEntity && state.attributes.device_class === 'energy') {
+      energyEntities.push(state);
+      return;
+    }
+
+    // If we're skipping default entities, don't process further
+    if (skipDefaultEntities) return;
 
     if (state.attributes.device_class === 'power') {
       powerEntities.push(state);

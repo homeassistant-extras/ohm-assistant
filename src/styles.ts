@@ -65,6 +65,7 @@ export const styles = css`
     gap: 8px;
     font-size: 0.85rem;
     color: var(--primary-text-color);
+    justify-content: space-between;
   }
 
   .legend-color {
