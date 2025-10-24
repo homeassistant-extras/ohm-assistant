@@ -41,7 +41,7 @@ export const getZapped = (
     if (!state) return;
 
     // Count active lights and switches in the area
-    if ((isInArea || isConfigEntity)) {
+    if (isInArea || isConfigEntity) {
       const hassState = hass.states[entity.entity_id];
       if (hassState) {
         if (state.domain === 'light' && stateActive(hassState)) {

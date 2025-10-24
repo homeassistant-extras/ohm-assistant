@@ -103,7 +103,8 @@ export class AreaEnergy extends LitElement {
    * @param {HomeAssistant} hass - The Home Assistant instance
    */
   set hass(hass: HomeAssistant) {
-    const { powerEntities, energyEntities, activeLights, activeSwitches } = getZapped(hass, this._config);
+    const { powerEntities, energyEntities, activeLights, activeSwitches } =
+      getZapped(hass, this._config);
 
     if (!equal(powerEntities, this._powerEntities)) {
       this._powerEntities = powerEntities;
@@ -167,19 +168,19 @@ export class AreaEnergy extends LitElement {
         <div class="status-badges">
           ${this._activeLights > 0
             ? html`
-              <div class="status-item">
-                <ha-icon icon="mdi:lightbulb"></ha-icon>
-                <span class="status-count">${this._activeLights}</span>
-              </div>
-            `
+                <div class="status-item">
+                  <ha-icon icon="mdi:lightbulb"></ha-icon>
+                  <span class="status-count">${this._activeLights}</span>
+                </div>
+              `
             : nothing}
           ${this._activeSwitches > 0
             ? html`
-              <div class="status-item">
-                <ha-icon icon="mdi:light-switch"></ha-icon>
-                <span class="status-count">${this._activeSwitches}</span>
-              </div>
-            `
+                <div class="status-item">
+                  <ha-icon icon="mdi:light-switch"></ha-icon>
+                  <span class="status-count">${this._activeSwitches}</span>
+                </div>
+              `
             : nothing}
         </div>
       </div>

@@ -1,72 +1,187 @@
 # ⚡ Ohm Assistant Card
 
-A modern, professional Home Assistant custom card for displaying electricity usage and power consumption data.
+<p align="center">
+    <img src="assets/card.png" align="center" width="50%">
+</p>
+<p align="center"><h1 align="center">Ohm Assistant Card</h1></p>
+<p align="center">
+  <em>Modern energy monitoring and power consumption visualization for Home Assistant</em>
+</p>
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Home Assistant](https://img.shields.io/badge/home%20assistant-2024.1+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Home Assistant](https://img.shields.io/badge/home%20assistant-%2341BDF5.svg?style=for-the-badge&logo=home-assistant&logoColor=white)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+
+![GitHub Release](https://img.shields.io/github/v/release/homeassistant-extras/ohm-assistant?style=for-the-badge&logo=github)
+![GitHub Pre-Release](https://img.shields.io/github/v/release/homeassistant-extras/ohm-assistant?include_prereleases&style=for-the-badge&logo=github&label=PRERELEASE)
+![GitHub Tag](https://img.shields.io/github/v/tag/homeassistant-extras/ohm-assistant?style=for-the-badge&color=yellow)
+![GitHub branch status](https://img.shields.io/github/checks-status/homeassistant-extras/ohm-assistant/main?style=for-the-badge)
+
+![stars](https://img.shields.io/github/stars/homeassistant-extras/ohm-assistant.svg?style=for-the-badge)
+![home](https://img.shields.io/github/last-commit/homeassistant-extras/ohm-assistant.svg?style=for-the-badge)
+![commits](https://img.shields.io/github/commit-activity/y/homeassistant-extras/ohm-assistant?style=for-the-badge)
+![license](https://img.shields.io/github/license/homeassistant-extras/ohm-assistant?style=for-the-badge&logo=opensourceinitiative&logoColor=white&color=0080ff)
+
+<p align="center">Built with the tools and technologies:</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/npm-CB3837.svg?style=for-the-badge&logo=npm&logoColor=white" alt="npm">
+  <img src="https://img.shields.io/badge/Prettier-F7B93E.svg?style=for-the-badge&logo=Prettier&logoColor=black" alt="Prettier">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6.svg?style=for-the-badge&logo=TypeScript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white" alt="GitHub%20Actions">
+  <img src="https://img.shields.io/badge/Lit-324FFF.svg?style=for-the-badge&logo=Lit&logoColor=white" alt="Lit">
+</p>
+<br>
+
+## Overview
+
+A modern, professional Home Assistant custom card for displaying electricity usage and power consumption data. The Ohm Assistant Card provides real-time energy monitoring with beautiful charts and intuitive area-based entity discovery, making it easy to track your home's energy consumption patterns.
 
 ## Features
 
-- 📊 **Dual Metric Display**: Shows both real-time power consumption (W) and daily energy usage (kWh)
-- 🎨 **Modern Design**: Clean, professional card design with gradient icons and smooth animations
-- 🌓 **Theme Support**: Automatically adapts to Home Assistant's theme
-- ⚡ **Live Updates**: Real-time data updates from your Home Assistant sensors
-- 🎯 **Easy Configuration**: Simple visual editor for configuration
-- 📱 **Responsive**: Adapts to different screen sizes
+### 📊 Dual Metric Display
+
+- **Real-time Power Monitoring** - Shows current power consumption in Watts with live updates
+- **Daily Energy Tracking** - Displays daily energy usage in kWh with historical data
+- **Dual Y-Axis Charts** - Separate scales for power (W) and energy (kWh) on the same chart
+- **Interactive Tooltips** - Hover over data points to see exact values and timestamps
+
+![Dual Metric Display](assets/card.png)
+
+### 🎨 Modern Design
+
+- **Professional UI** - Clean, modern card design with gradient icons and smooth animations
+- **Theme Integration** - Automatically adapts to Home Assistant's light and dark themes
+- **Responsive Layout** - Optimized for both desktop and mobile viewing
+- **Visual Indicators** - Color-coded statistics to understand energy consumption at a glance
+
+![Minimalist](assets/minimalist.png)
+
+### 🏠 Area-Based Discovery
+
+- **Automatic Entity Detection** - Automatically finds power and energy entities within a specified area
+- **Smart Entity Mapping** - Intelligently identifies power (W) and energy (kWh) sensors
+- **Device Integration** - Works seamlessly with Home Assistant's area and device structure
+- **Flexible Configuration** - Override auto-discovery with custom entity lists
+
+### 📈 Advanced Charting
+
+- **Interactive Charts** - Built with Chart.js for smooth, responsive data visualization
+- **Multiple Line Types** - Choose from normal, gradient, gradient-no-fill, or no-fill line styles
+- **Customizable Legends** - Configure legend display (entities, compact, or none)
+- **Axis Control** - Show/hide X and Y axes independently
+- **Time-based Data** - Automatic time scaling with proper date/time formatting
+
+![No Fill](assets/no-fill.png)
+No Fill
+
+![Gradient No Fill](assets/gradient-no-fill.png)
+Gradient No Fill
+
+![Gradient](assets/gradient.png)
+Gradient
+
+### ⚙️ Flexible Configuration
+
+- **Visual Editor** - Easy configuration through Home Assistant's card editor
+- **YAML Support** - Full YAML configuration for advanced users
+- **Feature Flags** - Toggle functionality like hiding card name or excluding default entities
+- **Chart Customization** - Fine-tune chart appearance and behavior
+- **Entity Override** - Specify custom entities to include or exclude
 
 ## Installation
 
+### Prerequisites
+
+> [!NOTE]  
+> This card works with any Home Assistant entities that have `device_class: power` (for Watts) or `device_class: energy` (for kWh). No additional integrations are required.
+
 ### HACS (Recommended)
 
+NOTE: may not work until the project is added to HACS official, see Manual Installation
+
+[![HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=homeassistant-extras&repository=ohm-assistant&category=dashboard)
+
 1. Open HACS in your Home Assistant instance
-2. Click on "Frontend"
-3. Click the "+" button
-4. Search for "Ohm Assistant Card"
-5. Click "Install"
-6. Restart Home Assistant
+2. Click the menu icon in the top right and select "Custom repositories"
+3. Add this repository URL and select "Dashboard" as the category
+   - `https://github.com/homeassistant-extras/ohm-assistant`
+4. Click "Install"
 
 ### Manual Installation
 
-1. Download `ohm-assistant.js` from the latest release
-2. Copy it to your `config/www` folder
-3. Add a resource reference in your Lovelace configuration:
+1. Download the `ohm-assistant.js` file from the latest release in the Releases tab.
+2. Copy it to your `www/community/ohm-assistant/` folder
+3. Add the following to your `configuration.yaml` (or add as a resource in dashboards menu)
 
 ```yaml
-resources:
-  - url: /local/ohm-assistant.js
-    type: module
+lovelace:
+  resources:
+    - url: /local/community/ohm-assistant/ohm-assistant.js
+      type: module
 ```
 
-4. Restart Home Assistant
+## Usage
 
-## Configuration
+Add the card to your dashboard using the UI editor or YAML:
 
-### Visual Editor
+### Card Editor
 
-The easiest way to configure the card is through the visual editor:
+The card is fully configurable through the card editor, allowing you to customize:
 
-1. Add a new card to your dashboard
-2. Search for "Ohm Assistant Card"
-3. Configure the entities and options
+- Area selection for automatic entity discovery
+- Custom entity lists
+- Chart configuration options
+- Feature toggles
 
-### YAML Configuration
+### YAML
+
+This is the most minimal configuration needed to get started:
 
 ```yaml
 type: custom:area-energy-card
-name: Living Room Electricity
-power_entity: sensor.living_room_15_1min
-energy_entity: sensor.living_room_15_1d
+area: living_room
 ```
 
-### Configuration Options
+For custom entity configuration:
 
-| Name            | Type   | Default             | Description                                     |
-| --------------- | ------ | ------------------- | ----------------------------------------------- |
-| `type`          | string | **Required**        | Must be `custom:area-energy-card`               |
-| `name`          | string | `Electricity Usage` | Card title                                      |
-| `power_entity`  | string | Optional            | Entity ID for power sensor (should be in Watts) |
-| `energy_entity` | string | Optional            | Entity ID for energy sensor (should be in kWh)  |
+```yaml
+type: custom:area-energy-card
+area: living_room
+entities:
+  - sensor.living_room_power
+  - sensor.living_room_energy
+```
+
+The card will automatically:
+
+- Detect power and energy entities within the specified area
+- Create beautiful charts with dual Y-axis (power in W, energy in kWh)
+- Display real-time data with historical context
+- Adapt to your Home Assistant theme
+
+## Configuration Options
+
+| Name     | Type   | Default      | Description                                                   |
+| -------- | ------ | ------------ | ------------------------------------------------------------- |
+| area     | string | **Required** | The area name to automatically discover energy/power entities |
+| name     | string | Area Energy  | Custom name for the card                                      |
+| entities | array  | _auto_       | Custom list of entities to include                            |
+| chart    | object | _none_       | Chart configuration options                                   |
+| features | array  | _none_       | Feature flags to enable/disable functionality                 |
+
+### Chart Configuration
+
+| Name         | Type   | Default  | Description                                             |
+| ------------ | ------ | -------- | ------------------------------------------------------- |
+| legend_style | string | entities | Legend display style: entities, compact, none           |
+| axis_style   | string | all      | Axis display: all, x_only, y_only, none                 |
+| line_type    | string | normal   | Line style: normal, gradient, gradient_no_fill, no_fill |
+
+### Feature Flags
+
+| Feature                  | Description                              |
+| ------------------------ | ---------------------------------------- |
+| hide_name                | Hide the card name from display          |
+| exclude_default_entities | Exclude default auto-discovered entities |
 
 ### Entity Requirements
 
@@ -74,52 +189,138 @@ energy_entity: sensor.living_room_15_1d
 
 - `device_class: power`
 - `unit_of_measurement: W`
-- Example: `sensor.living_room_15_1min`
+- Example: `sensor.living_room_power`
 
 **Energy Entity:**
 
 - `device_class: energy`
 - `unit_of_measurement: kWh`
-- Example: `sensor.living_room_15_1d`
+- Example: `sensor.living_room_energy`
+
+### Auto-discovery
+
+The card automatically discovers energy and power entities within the specified area based on:
+
+- Entity `device_class` (power or energy)
+- Entity `unit_of_measurement` (W for power, kWh for energy)
+- Entity relationships to the area
+
+This includes sensors with the appropriate device classes and units.
 
 ## Example Configurations
 
-### Minimal Configuration
+### Basic Configuration
 
 ```yaml
 type: custom:area-energy-card
-power_entity: sensor.power_consumption
-energy_entity: sensor.energy_today
+area: living_room
 ```
 
-### Full Configuration
+### With Custom Name
 
 ```yaml
 type: custom:area-energy-card
-name: Living Room Energy Monitor
-power_entity: sensor.living_room_15_1min
-energy_entity: sensor.living_room_15_1d
+area: living_room
+name: 'Living Room Energy Monitor'
 ```
 
-### Power Only
+### With Custom Entities
 
 ```yaml
 type: custom:area-energy-card
-name: Current Power Usage
-power_entity: sensor.power_consumption
+area: living_room
+entities:
+  - sensor.living_room_power
+  - sensor.living_room_energy
 ```
 
-### Energy Only
+### With Chart Configuration
 
 ```yaml
 type: custom:area-energy-card
-name: Today's Energy Usage
-energy_entity: sensor.energy_today
+area: living_room
+chart:
+  legend_style: compact
+  axis_style: y_only
+  line_type: gradient
+```
+
+### With Feature Flags
+
+```yaml
+type: custom:area-energy-card
+area: living_room
+features:
+  - hide_name
+  - exclude_default_entities
+```
+
+### Full Configuration Example
+
+```yaml
+type: custom:area-energy-card
+area: living_room
+name: 'Living Room Energy Monitor'
+entities:
+  - sensor.living_room_power
+  - sensor.living_room_energy
+chart:
+  legend_style: entities
+  axis_style: all
+  line_type: gradient_no_fill
+features:
+  - hide_name
 ```
 
 ## Screenshots
 
-_Coming soon_
+_Coming soon - screenshots of the card in action will be added here._
+
+## Project Roadmap
+
+- [x] **`Initial design`**: Create initial area energy card design
+- [x] **`Area-based discovery`**: Automatic detection of energy/power entities within areas
+- [x] **`Dual metric display`**: Real-time power (W) and energy (kWh) visualization
+- [x] **`Chart integration`**: Chart.js implementation with dual Y-axis support
+- [x] **`Modern UI`**: Professional design with theme integration
+- [x] **`Configuration options`**: Visual editor and YAML support
+- [x] **`Feature flags`**: Toggle functionality like hiding card name
+- [x] **`Chart customization`**: Multiple line types and legend styles
+- [x] **`Performance optimization`**: Efficient rendering with memoization
+- [x] **`TypeScript support`**: Full type safety and modern development
+
+## Contributing
+
+- **💬 [Join the Discussions](https://github.com/homeassistant-extras/ohm-assistant/discussions)**: Share your insights, provide feedback, or ask questions.
+- **🐛 [Report Issues](https://github.com/homeassistant-extras/ohm-assistant/issues)**: Submit bugs found or log feature requests for the `ohm-assistant` project.
+- **💡 [Submit Pull Requests](https://github.com/homeassistant-extras/ohm-assistant/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
+- **📣 [Check out discord](https://discord.gg/NpH4Pt8Jmr)**: Need further help, have ideas, want to chat?
+- **🃏 [Check out my other cards!](https://github.com/orgs/homeassistant-extras/repositories)** Maybe you have an integration that I made cards for.
+
+<details closed>
+<summary>Contributing Guidelines</summary>
+
+1. **Fork the Repository**: Start by forking the project repository to your GitHub account.
+2. **Clone Locally**: Clone the forked repository to your local machine using a git client.
+   ```sh
+   git clone https://github.com/homeassistant-extras/ohm-assistant
+   ```
+3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
+   ```sh
+   git checkout -b new-feature-x
+   ```
+4. **Make Your Changes**: Develop and test your changes locally.
+5. **Commit Your Changes**: Commit with a clear message describing your updates.
+   ```sh
+   git commit -m 'Implemented new feature x.'
+   ```
+6. **Push to GitHub**: Push the changes to your forked repository.
+   ```sh
+   git push origin new-feature-x
+   ```
+7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
+8. **Review**: Once your PR is reviewed and approved, it will be merged into the main branch. Congratulations on your contribution!
+</details>
 
 ## Development
 
@@ -159,44 +360,57 @@ yarn test
 yarn format
 ```
 
-## Troubleshooting
-
-### Card Not Showing Up
-
-1. Make sure you've added the resource to your Lovelace configuration
-2. Clear your browser cache (Ctrl+F5 or Cmd+Shift+R)
-3. Check the browser console for errors
-
-### Entity Unavailable
-
-1. Verify the entity ID is correct
-2. Check that the entity exists in Developer Tools > States
-3. Ensure the entity has the correct `device_class` and `unit_of_measurement`
-
-### Styling Issues
-
-1. The card uses Home Assistant's theme variables
-2. Try switching between light and dark themes
-3. Check for custom theme conflicts
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
-MIT License - see LICENSE file for details
+This project is protected under the MIT License. For more details, refer to the [LICENSE](LICENSE) file.
 
-## Credits
+## Acknowledgments
 
-Created by Patrick Masters
+- Built using [LitElement](https://lit.dev/)
+- Chart visualization powered by [Chart.js](https://www.chartjs.org/)
+- Inspired by modern energy monitoring dashboards
+- Thanks to all contributors!
 
-Inspired by the design patterns from the home-assistant-cards repository.
+[![contributors](https://contrib.rocks/image?repo=homeassistant-extras/ohm-assistant)](https://github.com/homeassistant-extras/ohm-assistant/graphs/contributors)
 
-## Support
+[![ko-fi](https://img.shields.io/badge/buy%20me%20a%20coffee-72A5F2?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/N4N71AQZQG)
 
-If you find this card useful, please consider:
+## Code Quality
 
-- Starring the repository
-- Reporting issues
-- Contributing improvements
+Forgive me and my badges..
+
+Stats
+
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=bugs)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=coverage)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+
+Ratings
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=homeassistant-extras_ohm-assistant&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=homeassistant-extras_ohm-assistant)
+
+## Build Status
+
+### Main
+
+[![CodeQL](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/github-code-scanning/codeql)
+[![Dependabot Updates](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/dependabot/dependabot-updates/badge.svg?branch=main)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/dependabot/dependabot-updates)
+[![Main Branch CI](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/main-ci.yaml/badge.svg?branch=main)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/main-ci.yaml)
+[![Fast Forward Check](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/pull_request.yaml/badge.svg?branch=main)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/pull_request.yaml)
+
+### Release
+
+[![Release & Deploy](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/release-cd.yaml/badge.svg)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/release-cd.yaml)
+[![Merge](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/merge.yaml/badge.svg)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/merge.yaml)
+
+### Other
+
+[![Issue assignment](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/assign.yaml/badge.svg)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/assign.yaml)
+[![Manual Release](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/manual-release.yaml/badge.svg)](https://github.com/homeassistant-extras/ohm-assistant/actions/workflows/manual-release.yaml)

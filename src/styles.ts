@@ -22,10 +22,6 @@ export const styles = css`
     );
   }
 
-  ha-card {
-    padding: 16px;
-  }
-
   .header {
     display: flex;
     justify-content: space-between;
@@ -33,6 +29,7 @@ export const styles = css`
     margin-bottom: 12px;
     flex-wrap: wrap;
     gap: 8px;
+    padding: 16px;
   }
 
   .card-title {
@@ -77,7 +74,6 @@ export const styles = css`
     position: relative;
     width: 100%;
     height: 300px;
-    margin-bottom: 16px;
   }
 
   .chart-container canvas {
