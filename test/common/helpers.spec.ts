@@ -4,6 +4,7 @@ import sinon from 'sinon';
 import {
   fetchEntityStatistics,
   fetchRecentStatistics,
+  getAreaEntities,
 } from '../../src/common/helpers';
 import type { HomeAssistant } from '../../src/hass/types';
 
@@ -446,6 +447,227 @@ describe('helpers', () => {
 
       expect(result).to.be.an('array');
       expect(result).to.have.length(0);
+    });
+  });
+
+  describe('getAreaEntities', () => {
+    it('should return entities that belong to the specified area by entity area_id', () => {
+      const mockHass = {
+        entities: {
+          'sensor.living_room_power': {
+            entity_id: 'sensor.living_room_power',
+            area_id: 'living_room',
+            device_id: 'device1',
+          },
+          'sensor.kitchen_power': {
+            entity_id: 'sensor.kitchen_power',
+            area_id: 'kitchen',
+            device_id: 'device2',
+          },
+          'sensor.living_room_energy': {
+            entity_id: 'sensor.living_room_energy',
+            area_id: 'living_room',
+            device_id: 'device3',
+          },
+        },
+        devices: {
+          device1: { area_id: 'living_room' },
+          device2: { area_id: 'kitchen' },
+          device3: { area_id: 'living_room' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'living_room');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(2);
+      expect(result).to.include('sensor.living_room_power');
+      expect(result).to.include('sensor.living_room_energy');
+      expect(result).to.not.include('sensor.kitchen_power');
+    });
+
+    it('should return entities that belong to the specified area by device area_id', () => {
+      const mockHass = {
+        entities: {
+          'sensor.device_power': {
+            entity_id: 'sensor.device_power',
+            area_id: null, // Entity has no area_id
+            device_id: 'device1',
+          },
+          'sensor.other_power': {
+            entity_id: 'sensor.other_power',
+            area_id: 'other_area',
+            device_id: 'device2',
+          },
+        },
+        devices: {
+          device1: { area_id: 'target_area' },
+          device2: { area_id: 'other_area' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(1);
+      expect(result).to.include('sensor.device_power');
+      expect(result).to.not.include('sensor.other_power');
+    });
+
+    it('should return entities that match either entity area_id or device area_id', () => {
+      const mockHass = {
+        entities: {
+          'sensor.entity_area_power': {
+            entity_id: 'sensor.entity_area_power',
+            area_id: 'target_area',
+            device_id: 'device1',
+          },
+          'sensor.device_area_power': {
+            entity_id: 'sensor.device_area_power',
+            area_id: null,
+            device_id: 'device2',
+          },
+          'sensor.both_area_power': {
+            entity_id: 'sensor.both_area_power',
+            area_id: 'target_area',
+            device_id: 'device3',
+          },
+          'sensor.no_match_power': {
+            entity_id: 'sensor.no_match_power',
+            area_id: 'other_area',
+            device_id: 'device4',
+          },
+        },
+        devices: {
+          device1: { area_id: 'other_area' },
+          device2: { area_id: 'target_area' },
+          device3: { area_id: 'target_area' },
+          device4: { area_id: 'other_area' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(3);
+      expect(result).to.include('sensor.entity_area_power');
+      expect(result).to.include('sensor.device_area_power');
+      expect(result).to.include('sensor.both_area_power');
+      expect(result).to.not.include('sensor.no_match_power');
+    });
+
+    it('should return empty array when no entities match the area', () => {
+      const mockHass = {
+        entities: {
+          'sensor.other_power': {
+            entity_id: 'sensor.other_power',
+            area_id: 'other_area',
+            device_id: 'device1',
+          },
+        },
+        devices: {
+          device1: { area_id: 'other_area' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should return empty array when hass has no entities', () => {
+      const mockHass = {
+        entities: {},
+        devices: {},
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should handle entities with undefined area_id and device_id', () => {
+      const mockHass = {
+        entities: {
+          'sensor.no_area_entity': {
+            entity_id: 'sensor.no_area_entity',
+            area_id: null,
+            device_id: null,
+          },
+          'sensor.valid_entity': {
+            entity_id: 'sensor.valid_entity',
+            area_id: 'target_area',
+            device_id: 'device1',
+          },
+        },
+        devices: {
+          device1: { area_id: 'target_area' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(1);
+      expect(result).to.include('sensor.valid_entity');
+      expect(result).to.not.include('sensor.no_area_entity');
+    });
+
+    it('should handle devices with undefined area_id', () => {
+      const mockHass = {
+        entities: {
+          'sensor.device_no_area': {
+            entity_id: 'sensor.device_no_area',
+            area_id: null,
+            device_id: 'device1',
+          },
+          'sensor.valid_entity': {
+            entity_id: 'sensor.valid_entity',
+            area_id: 'target_area',
+            device_id: 'device2',
+          },
+        },
+        devices: {
+          device1: { area_id: null },
+          device2: { area_id: 'target_area' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(1);
+      expect(result).to.include('sensor.valid_entity');
+      expect(result).to.not.include('sensor.device_no_area');
+    });
+
+    it('should handle missing device in devices registry', () => {
+      const mockHass = {
+        entities: {
+          'sensor.missing_device': {
+            entity_id: 'sensor.missing_device',
+            area_id: null,
+            device_id: 'missing_device',
+          },
+          'sensor.valid_entity': {
+            entity_id: 'sensor.valid_entity',
+            area_id: 'target_area',
+            device_id: 'device1',
+          },
+        },
+        devices: {
+          device1: { area_id: 'target_area' },
+        },
+      } as any;
+
+      const result = getAreaEntities(mockHass, 'target_area');
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(1);
+      expect(result).to.include('sensor.valid_entity');
+      expect(result).to.not.include('sensor.missing_device');
     });
   });
 });

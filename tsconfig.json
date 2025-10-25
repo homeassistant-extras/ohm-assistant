@@ -23,7 +23,8 @@
       "@html/*": ["./src/html/*"],
       "@type/*": ["./src/types/*"],
       "@common/*": ["./src/common/*"],
-      "@hass/*": ["./src/hass/*"]
+      "@hass/*": ["./src/hass/*"],
+      "@test/*": ["./test/*"]
     }
   },
   "include": ["src/**/*"],

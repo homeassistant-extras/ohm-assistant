@@ -37,6 +37,8 @@
     "memoize-one": "^6.0.0"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@open-wc/testing-helpers": "^3.0.1",
     "@parcel/config-default": "^2.16.0",
     "@parcel/packager-ts": "^2.16.0",
     "@parcel/transformer-typescript-tsc": "^2.16.0",

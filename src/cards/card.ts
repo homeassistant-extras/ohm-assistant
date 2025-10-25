@@ -5,18 +5,18 @@ import type { Config } from '@type/config';
 import { Chart } from 'chart.js';
 import { LitElement, html, nothing, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
-import { getArea } from './delegates/retrievers/area';
-import { getDevice } from './delegates/retrievers/device';
-import { getZapped } from './delegates/utils/get-zapped';
+import { getArea } from '../delegates/retrievers/area';
+import { getDevice } from '../delegates/retrievers/device';
+import { getZapped } from '../delegates/utils/get-zapped';
 import {
   createChart,
   destroyChart,
   type ChartData,
-} from './html/chart-go-burr';
-import { renderError } from './html/no-good';
-import { renderLegend } from './html/watching-waiting';
-import { styles } from './styles';
-import { EntityState } from './types/entity';
+} from '../html/chart-go-burr';
+import { renderError } from '../html/no-good';
+import { renderLegend } from '../html/watching-waiting';
+import { styles } from '../styles';
+import { EntityState } from '../types/entity';
 const equal = require('fast-deep-equal');
 
 /**

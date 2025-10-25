@@ -161,7 +161,16 @@ export async function fetchPowerEnergyData(
   };
 }
 
-const getAreaEntities = (hass: HomeAssistant, areaId: string): string[] => {
+/**
+ * Get all entity IDs that belong to a specific area
+ * @param hass Home Assistant instance
+ * @param areaId The area ID to filter entities by
+ * @returns Array of entity IDs in the area
+ */
+export const getAreaEntities = (
+  hass: HomeAssistant,
+  areaId: string,
+): string[] => {
   const entities = Object.values(hass.entities).filter((entity) => {
     const device = getDevice(hass.devices, entity.device_id);
     const isInArea = [entity.area_id, device?.area_id].includes(areaId);

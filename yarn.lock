@@ -275,6 +275,13 @@
     js-yaml "^3.13.1"
     resolve-from "^5.0.0"
 
+"@istanbuljs/nyc-config-typescript@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@istanbuljs/nyc-config-typescript/-/nyc-config-typescript-1.0.2.tgz#1f5235b28540a07219ae0dd42014912a0b19cf89"
+  integrity sha512-iKGIyMoyJuFnJRSVTZ78POIRvNnwZaWIf8vG4ZS3rQq58MMDrqEX2nnzx0R28V2X8JvmKYiqY9FP2hlJsm8A0w==
+  dependencies:
+    "@istanbuljs/schema" "^0.1.2"
+
 "@istanbuljs/schema@^0.1.2", "@istanbuljs/schema@^0.1.3":
   version "0.1.3"
   resolved "https://registry.npmjs.org/@istanbuljs/schema/-/schema-0.1.3.tgz"
@@ -426,6 +433,28 @@
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@msgpackr-extract/msgpackr-extract-win32-x64/-/msgpackr-extract-win32-x64-3.0.3.tgz#0aa5502d547b57abfc4ac492de68e2006e417242"
   integrity sha512-x0fWaQtYp4E6sktbsdAqnehxDgEc/VwM7uLsRCYWaiGu0ykYdZPiS8zCWdnjHwyiumousxfBm4SO31eXqwEZhQ==
+
+"@open-wc/dedupe-mixin@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@open-wc/dedupe-mixin/-/dedupe-mixin-2.0.1.tgz#3bcd009c63a4713d8ce4e304a72eb33977e374ac"
+  integrity sha512-+R4VxvceUxHAUJXJQipkkoV9fy10vNo+OnUnGKZnVmcwxMl460KLzytnUM4S35SI073R0yZQp9ra0MbPUwVcEA==
+
+"@open-wc/scoped-elements@^3.0.2":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@open-wc/scoped-elements/-/scoped-elements-3.0.6.tgz#9ba4a316d39f2b29dc188f34a7f5e4e1fc9dded1"
+  integrity sha512-w1ayJaUUmBw8tALtqQ6cBueld+op+bufujzbrOdH0uCTXnSQkONYZzOH+9jyQ8auVgKLqcxZ8oU6SzfqQhQkPg==
+  dependencies:
+    "@open-wc/dedupe-mixin" "^2.0.0"
+    lit "^3.0.0"
+
+"@open-wc/testing-helpers@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@open-wc/testing-helpers/-/testing-helpers-3.0.1.tgz#f356690fc3495467503a30a2172288aa8baef6f8"
+  integrity sha512-hyNysSatbgT2FNxHJsS3rGKcLEo6+HwDFu1UQL6jcSQUabp/tj3PyX7UnXL3H5YGv0lJArdYLSnvjLnjn3O2fw==
+  dependencies:
+    "@open-wc/scoped-elements" "^3.0.2"
+    lit "^2.0.0 || ^3.0.0"
+    lit-html "^2.0.0 || ^3.0.0"
 
 "@parcel/bundler-default@2.16.0":
   version "2.16.0"
@@ -2274,14 +2303,14 @@ lit-element@^4.2.0:
     "@lit/reactive-element" "^2.1.0"
     lit-html "^3.3.0"
 
-lit-html@^3.3.0:
+"lit-html@^2.0.0 || ^3.0.0", lit-html@^3.3.0:
   version "3.3.1"
   resolved "https://registry.npmjs.org/lit-html/-/lit-html-3.3.1.tgz"
   integrity sha512-S9hbyDu/vs1qNrithiNyeyv64c9yqiW9l+DBgI18fL+MTvOtWoFR0FWiyq1TxaYef5wNlpEmzlXoBlZEO+WjoA==
   dependencies:
     "@types/trusted-types" "^2.0.2"
 
-lit@^3.3.1:
+"lit@^2.0.0 || ^3.0.0", lit@^3.0.0, lit@^3.3.1:
   version "3.3.1"
   resolved "https://registry.npmjs.org/lit/-/lit-3.3.1.tgz"
   integrity sha512-Ksr/8L3PTapbdXJCk+EJVB78jDodUMaP54gD24W186zGRARvwrsPfS60wae/SSCTCNZVPd1chXqio1qHQmu4NA==

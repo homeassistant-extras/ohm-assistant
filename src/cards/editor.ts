@@ -2,8 +2,8 @@ import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
 import { LitElement, html, nothing, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
-import { fireEvent } from './hass/common/dom/fire_event';
-import { HaFormSchema } from './hass/components/ha-form/types';
+import { fireEvent } from '../hass/common/dom/fire_event';
+import { HaFormSchema } from '../hass/components/ha-form/types';
 
 export class AreaEnergyEditor extends LitElement {
   @state()
@@ -209,6 +209,7 @@ export class AreaEnergyEditor extends LitElement {
 
   private _valueChanged(ev: CustomEvent): void {
     const config = ev.detail.value as Config;
+    // @ts-ignore
     fireEvent(this, 'config-changed', { config });
   }
 }

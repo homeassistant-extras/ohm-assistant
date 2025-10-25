@@ -1,6 +1,6 @@
 import { version } from '../package.json';
-import { AreaEnergy } from './card';
-import { AreaEnergyEditor } from './editor';
+import { AreaEnergy } from './cards/card';
+import { AreaEnergyEditor } from './cards/editor';
 
 // Register custom elements
 customElements.define('area-energy-card', AreaEnergy);
