@@ -124,6 +124,7 @@ Chart.register(
 
 export interface EntityData {
   entityId: string;
+  friendlyName: string;
   data: HistoryDataPoint[];
 }
 
@@ -181,7 +182,7 @@ export function createChartConfig(
       const entityColor = getEntityColor(index, 'power', powerData.length);
 
       datasets.push({
-        label: `${entityData.entityId} (W)`,
+        label: `${entityData.friendlyName} (W)`,
         data: powerChartData,
         borderColor:
           lineType === 'gradient' || lineType === 'gradient_no_fill'
@@ -229,7 +230,7 @@ export function createChartConfig(
       const entityColor = getEntityColor(index, 'energy', energyData.length);
 
       datasets.push({
-        label: `${entityData.entityId} (kWh)`,
+        label: `${entityData.friendlyName} (kWh)`,
         data: energyChartData,
         borderColor:
           lineType === 'gradient' || lineType === 'gradient_no_fill'

@@ -25,6 +25,7 @@ describe('chart-go-burr', () => {
 
   const mockEntityData = {
     entityId: 'sensor.power',
+    friendlyName: 'Power',
     data: [mockHistoryDataPoint],
   };
 
@@ -75,12 +76,12 @@ describe('chart-go-burr', () => {
     it('should handle multiple entities correctly', () => {
       const multipleEntityData = {
         powerData: [
-          { entityId: 'sensor.power1', data: [mockHistoryDataPoint] },
-          { entityId: 'sensor.power2', data: [mockHistoryDataPoint] },
+          { entityId: 'sensor.power1', friendlyName: 'Power 1', data: [mockHistoryDataPoint] },
+          { entityId: 'sensor.power2', friendlyName: 'Power 2', data: [mockHistoryDataPoint] },
         ],
         energyData: [
-          { entityId: 'sensor.energy1', data: [mockHistoryDataPoint] },
-          { entityId: 'sensor.energy2', data: [mockHistoryDataPoint] },
+          { entityId: 'sensor.energy1', friendlyName: 'Energy 1', data: [mockHistoryDataPoint] },
+          { entityId: 'sensor.energy2', friendlyName: 'Energy 2', data: [mockHistoryDataPoint] },
         ],
       };
 
@@ -386,6 +387,7 @@ describe('chart-go-burr', () => {
       powerData: [
         {
           entityId: 'sensor.power1',
+          friendlyName: 'Power 1',
           data: [
             { timestamp: new Date('2024-01-01T10:00:00Z'), value: 100 },
             { timestamp: new Date('2024-01-01T11:00:00Z'), value: 150 },
@@ -395,6 +397,7 @@ describe('chart-go-burr', () => {
       energyData: [
         {
           entityId: 'sensor.energy1',
+          friendlyName: 'Energy 1',
           data: [
             { timestamp: new Date('2024-01-01T10:00:00Z'), value: 1.5 },
             { timestamp: new Date('2024-01-01T11:00:00Z'), value: 2.0 },
@@ -449,7 +452,7 @@ describe('chart-go-burr', () => {
       );
 
       expect(powerDataset).to.exist;
-      expect(powerDataset).to.have.property('label', 'sensor.power1 (W)');
+      expect(powerDataset).to.have.property('label', 'Power 1 (W)');
       expect(powerDataset).to.have.property('data');
       expect(powerDataset).to.have.property('borderColor');
       expect(powerDataset).to.have.property('backgroundColor');
@@ -467,7 +470,7 @@ describe('chart-go-burr', () => {
       );
 
       expect(energyDataset).to.exist;
-      expect(energyDataset).to.have.property('label', 'sensor.energy1 (kWh)');
+      expect(energyDataset).to.have.property('label', 'Energy 1 (kWh)');
       expect(energyDataset).to.have.property('data');
       expect(energyDataset).to.have.property('borderColor');
       expect(energyDataset).to.have.property('backgroundColor');
@@ -562,13 +565,14 @@ describe('chart-go-burr', () => {
     it('should handle entities with no data', () => {
       const dataWithEmptyEntities = {
         powerData: [
-          { entityId: 'sensor.power1', data: [] },
+          { entityId: 'sensor.power1', friendlyName: 'Power 1', data: [] },
           {
             entityId: 'sensor.power2',
+            friendlyName: 'Power 2',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
-        energyData: [{ entityId: 'sensor.energy1', data: [] }],
+        energyData: [{ entityId: 'sensor.energy1', friendlyName: 'Energy 1', data: [] }],
       };
 
       const config = createChartConfig(dataWithEmptyEntities);
@@ -576,7 +580,7 @@ describe('chart-go-burr', () => {
       // Should only create dataset for entities with data
       expect(config.data.datasets).to.have.length(1); // Only power2 has data
       const dataset = config.data.datasets[0];
-      expect(dataset).to.have.property('label', 'sensor.power2 (W)');
+      expect(dataset).to.have.property('label', 'Power 2 (W)');
     });
 
     it('should configure tooltip correctly', () => {
@@ -610,20 +614,24 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
           {
             entityId: 'sensor.power2',
+            friendlyName: 'Power 2',
             data: [{ timestamp: new Date(), value: 200 }],
           },
         ],
         energyData: [
           {
             entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
             data: [{ timestamp: new Date(), value: 1.5 }],
           },
           {
             entityId: 'sensor.energy2',
+            friendlyName: 'Energy 2',
             data: [{ timestamp: new Date(), value: 2.0 }],
           },
         ],
@@ -643,15 +651,15 @@ describe('chart-go-burr', () => {
       expect(powerDatasets).to.have.length(2);
       expect(energyDatasets).to.have.length(2);
 
-      expect(powerDatasets[0]).to.have.property('label', 'sensor.power1 (W)');
-      expect(powerDatasets[1]).to.have.property('label', 'sensor.power2 (W)');
+      expect(powerDatasets[0]).to.have.property('label', 'Power 1 (W)');
+      expect(powerDatasets[1]).to.have.property('label', 'Power 2 (W)');
       expect(energyDatasets[0]).to.have.property(
         'label',
-        'sensor.energy1 (kWh)',
+        'Energy 1 (kWh)',
       );
       expect(energyDatasets[1]).to.have.property(
         'label',
-        'sensor.energy2 (kWh)',
+        'Energy 2 (kWh)',
       );
     });
 
@@ -700,6 +708,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -724,6 +733,7 @@ describe('chart-go-burr', () => {
         energyData: [
           {
             entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
             data: [{ timestamp: new Date(), value: 1.5 }],
           },
         ],
@@ -749,6 +759,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100.5 }],
           },
         ],
@@ -772,6 +783,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -798,6 +810,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -821,6 +834,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -855,6 +869,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -885,6 +900,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -930,6 +946,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -979,6 +996,7 @@ describe('chart-go-burr', () => {
         energyData: [
           {
             entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
             data: [{ timestamp: new Date(), value: 1.5 }],
           },
         ],
@@ -1026,12 +1044,14 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
         energyData: [
           {
             entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
             data: [{ timestamp: new Date(), value: 1.5 }],
           },
         ],
@@ -1060,12 +1080,14 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
         energyData: [
           {
             entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
             data: [{ timestamp: new Date(), value: 1.5 }],
           },
         ],
@@ -1116,6 +1138,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],
@@ -1165,6 +1188,7 @@ describe('chart-go-burr', () => {
         powerData: [
           {
             entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
             data: [{ timestamp: new Date(), value: 100 }],
           },
         ],

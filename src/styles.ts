@@ -84,8 +84,7 @@ export const styles = css`
   .legend-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 12px 0;
+    padding: 12px;
     border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.1));
   }
 

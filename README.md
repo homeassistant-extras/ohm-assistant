@@ -288,6 +288,7 @@ _Coming soon - screenshots of the card in action will be added here._
 - [x] **`Chart customization`**: Multiple line types and legend styles
 - [x] **`Performance optimization`**: Efficient rendering with memoization
 - [x] **`TypeScript support`**: Full type safety and modern development
+- [x] **`UI improvements`**: Tweaks and changes for the UI - thanks @LamarcLS
 
 ## Contributing
 

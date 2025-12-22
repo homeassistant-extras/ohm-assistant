@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import sinon from 'sinon';
 import {
   fetchEntityStatistics,
+  fetchPowerEnergyData,
   fetchRecentStatistics,
   getAreaEntities,
 } from '../../src/common/helpers';
@@ -668,6 +669,74 @@ describe('helpers', () => {
       expect(result).to.have.length(1);
       expect(result).to.include('sensor.valid_entity');
       expect(result).to.not.include('sensor.missing_device');
+    });
+  });
+
+  describe('fetchPowerEnergyData', () => {
+    it('should include friendlyName in returned EntityData', async () => {
+      const mockStatsData = {
+        'sensor.power1': [
+          { start: 1640995200, end: 1640995500, mean: 100 },
+        ],
+        'sensor.energy1': [
+          { start: 1640995200, end: 1640995500, mean: 1.5 },
+        ],
+      };
+
+      callWSStub.resolves(mockStatsData);
+
+      const powerEntities = [
+        {
+          entity_id: 'sensor.power1',
+          state: '100',
+          attributes: { friendly_name: 'Kitchen Power', device_class: 'power' },
+        },
+      ] as any;
+
+      const energyEntities = [
+        {
+          entity_id: 'sensor.energy1',
+          state: '1.5',
+          attributes: { friendly_name: 'Kitchen Energy', device_class: 'energy' },
+        },
+      ] as any;
+
+      const result = await fetchPowerEnergyData(
+        mockHass,
+        powerEntities,
+        energyEntities,
+        24,
+      );
+
+      expect(result.powerData).to.have.length(1);
+      expect(result.powerData[0]).to.have.property('friendlyName', 'Kitchen Power');
+      expect(result.powerData[0]).to.have.property('entityId', 'sensor.power1');
+
+      expect(result.energyData).to.have.length(1);
+      expect(result.energyData[0]).to.have.property('friendlyName', 'Kitchen Energy');
+      expect(result.energyData[0]).to.have.property('entityId', 'sensor.energy1');
+    });
+
+    it('should fallback to entityId when friendly_name is not set', async () => {
+      callWSStub.resolves({});
+
+      const powerEntities = [
+        {
+          entity_id: 'sensor.power1',
+          state: '100',
+          attributes: { device_class: 'power' },
+        },
+      ] as any;
+
+      const result = await fetchPowerEnergyData(
+        mockHass,
+        powerEntities,
+        [],
+        24,
+      );
+
+      expect(result.powerData).to.have.length(1);
+      expect(result.powerData[0]).to.have.property('friendlyName', 'sensor.power1');
     });
   });
 });

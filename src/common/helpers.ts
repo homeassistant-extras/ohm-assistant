@@ -114,6 +114,7 @@ export async function fetchRecentStatistics(
 
 export interface EntityData {
   entityId: string;
+  friendlyName: string;
   data: HistoryDataPoint[];
 }
 
@@ -152,10 +153,12 @@ export async function fetchPowerEnergyData(
   return {
     powerData: powerEntities.map((entity, index) => ({
       entityId: entity.entity_id,
+      friendlyName: entity.attributes.friendly_name || entity.entity_id,
       data: powerResults[index] || [],
     })),
     energyData: energyEntities.map((entity, index) => ({
       entityId: entity.entity_id,
+      friendlyName: entity.attributes.friendly_name || entity.entity_id,
       data: energyResults[index] || [],
     })),
   };
