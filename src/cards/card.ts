@@ -1,4 +1,9 @@
-import { fetchPowerEnergyData, type PowerEnergyData } from '@common/helpers';
+import {
+  fetchPowerEnergyData,
+  getEntityColorMap,
+  getEntityIds,
+  type PowerEnergyData,
+} from '@common/helpers';
 import { hasFeature } from '@config/feature';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
@@ -147,6 +152,7 @@ export class AreaEnergy extends LitElement {
           this._config,
           this._powerEntities,
           this._energyEntities,
+          getEntityColorMap(this._config),
         )}
       </ha-card>
     `;
@@ -208,7 +214,8 @@ export class AreaEnergy extends LitElement {
       );
 
       if (data.powerData.length === 0 && data.energyData.length === 0) {
-        this._error = `No history data available for entities: ${this._config.entities?.join(', ') || ''}`;
+        const entityIds = getEntityIds(this._config);
+        this._error = `No history data available for entities: ${entityIds.join(', ') || ''}`;
         return;
       }
 
@@ -238,6 +245,7 @@ export class AreaEnergy extends LitElement {
 
       const legendStyle = this._config.chart?.legend_style || 'entities';
       const axisStyle = this._config.chart?.axis_style || 'all';
+      const entityColorMap = getEntityColorMap(this._config);
 
       this._chart = createChart(canvas, chartData, {
         responsive: true,
@@ -246,6 +254,7 @@ export class AreaEnergy extends LitElement {
         hideXAxis: axisStyle === 'y_only' || axisStyle === 'none',
         hideYAxis: axisStyle === 'x_only' || axisStyle === 'none',
         lineType: this._config.chart?.line_type || 'normal',
+        entityColorMap,
       });
     } catch (error) {
       console.error('Failed to fetch history:', error);

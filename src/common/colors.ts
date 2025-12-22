@@ -1,15 +1,89 @@
+const homeAssistantColors = new Set([
+  'primary',
+  'accent',
+  'red',
+  'pink',
+  'purple',
+  'deep-purple',
+  'indigo',
+  'blue',
+  'light-blue',
+  'cyan',
+  'teal',
+  'green',
+  'light-green',
+  'lime',
+  'yellow',
+  'amber',
+  'orange',
+  'deep-orange',
+  'brown',
+  'light-grey',
+  'grey',
+  'dark-grey',
+  'blue-grey',
+  'black',
+  'white',
+  'disabled',
+]);
+
+/**
+ * Processes Home Assistant color - if color is a Home Assistant color name,
+ * returns the CSS variable, otherwise returns the raw color
+ * @param color - The color to process
+ * @returns CSS color string (either var(--color-color) or the raw color)
+ */
+function processHomeAssistantColor(color: string): string {
+  if (homeAssistantColors.has(color)) {
+    return `var(--${color}-color)`;
+  }
+  return color;
+}
+
+/**
+ * Resolves CSS variables to actual color values
+ * This is needed for Chart.js which doesn't support CSS variables
+ * @param color - The color string (may contain CSS variables)
+ * @returns The resolved color value
+ */
+export function resolveColor(color: string): string {
+  // If it's not a CSS variable, return as-is
+  if (!color.startsWith('var(--')) {
+    return color;
+  }
+
+  // Fallback for non-browser environments
+  if (typeof document === 'undefined') {
+    return color;
+  }
+
+  // Extract the CSS variable name (e.g., "var(--primary-color)" -> "--primary-color")
+  const varName = color.slice(4, -1); // Remove "var(" and ")"
+  const style = getComputedStyle(document.body);
+  const resolvedColor = style.getPropertyValue(varName).trim();
+  return resolvedColor ?? color;
+}
+
 /**
  * Generates colors for multiple entities of the same type
+ * @param entityId - The entity ID to get color for
  * @param index - The index of the entity
  * @param type - The type of entity ('power' or 'energy')
  * @param total - Total number of entities of this type
+ * @param colorMap - Optional map of entity_id → color for custom colors
  * @returns CSS color string
  */
 export function getEntityColor(
+  entityId: string,
   index: number,
   type: 'power' | 'energy',
   total: number,
+  colorMap?: Record<string, string>,
 ): string {
+  // Check for custom color first
+  if (colorMap?.[entityId]) {
+    return processHomeAssistantColor(colorMap[entityId]);
+  }
   if (total === 1) {
     // Default colors for single entities
     return type === 'power'

@@ -6,8 +6,11 @@ import {
   fetchPowerEnergyData,
   fetchRecentStatistics,
   getAreaEntities,
+  getEntityIds,
+  getEntityColorMap,
 } from '../../src/common/helpers';
 import type { HomeAssistant } from '../../src/hass/types';
+import type { Config } from '../../src/types/config';
 
 describe('helpers', () => {
   let mockHass: HomeAssistant;
@@ -737,6 +740,298 @@ describe('helpers', () => {
 
       expect(result.powerData).to.have.length(1);
       expect(result.powerData[0]).to.have.property('friendlyName', 'sensor.power1');
+    });
+  });
+
+  describe('getEntityIds', () => {
+    it('should return empty array when config has no entities', () => {
+      const config: Config = {
+        area: 'living_room',
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should return empty array when entities is undefined', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: undefined,
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should extract entity IDs from string array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: ['sensor.power1', 'sensor.power2', 'sensor.energy1'],
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(3);
+      expect(result).to.deep.equal([
+        'sensor.power1',
+        'sensor.power2',
+        'sensor.energy1',
+      ]);
+    });
+
+    it('should extract entity IDs from object array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: '#ff0000' },
+          { entity_id: 'sensor.power2', color: '#00ff00' },
+          { entity_id: 'sensor.energy1', color: '#0000ff' },
+        ],
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(3);
+      expect(result).to.deep.equal([
+        'sensor.power1',
+        'sensor.power2',
+        'sensor.energy1',
+      ]);
+    });
+
+    it('should handle mixed string and object array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          'sensor.power1',
+          { entity_id: 'sensor.power2', color: '#ff0000' },
+          'sensor.energy1',
+          { entity_id: 'sensor.energy2', color: '#00ff00' },
+        ],
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(4);
+      expect(result).to.deep.equal([
+        'sensor.power1',
+        'sensor.power2',
+        'sensor.energy1',
+        'sensor.energy2',
+      ]);
+    });
+
+    it('should handle empty entities array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [],
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result).to.be.an('array');
+      expect(result).to.have.length(0);
+    });
+
+    it('should preserve order of entities', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          'sensor.first',
+          { entity_id: 'sensor.second', color: '#ff0000' },
+          'sensor.third',
+        ],
+      };
+
+      const result = getEntityIds(config);
+
+      expect(result[0]).to.equal('sensor.first');
+      expect(result[1]).to.equal('sensor.second');
+      expect(result[2]).to.equal('sensor.third');
+    });
+  });
+
+  describe('getEntityColorMap', () => {
+    it('should return empty object when config has no entities', () => {
+      const config: Config = {
+        area: 'living_room',
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.be.an('object');
+      expect(result).to.deep.equal({});
+    });
+
+    it('should return empty object when entities is undefined', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: undefined,
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.be.an('object');
+      expect(result).to.deep.equal({});
+    });
+
+    it('should return empty object when entities are all strings', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: ['sensor.power1', 'sensor.power2', 'sensor.energy1'],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.be.an('object');
+      expect(result).to.deep.equal({});
+    });
+
+    it('should extract colors from object array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: '#ff0000' },
+          { entity_id: 'sensor.power2', color: '#00ff00' },
+          { entity_id: 'sensor.energy1', color: '#0000ff' },
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.be.an('object');
+      expect(result).to.deep.equal({
+        'sensor.power1': '#ff0000',
+        'sensor.power2': '#00ff00',
+        'sensor.energy1': '#0000ff',
+      });
+    });
+
+    it('should handle mixed string and object array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          'sensor.power1', // No color
+          { entity_id: 'sensor.power2', color: '#ff0000' },
+          'sensor.energy1', // No color
+          { entity_id: 'sensor.energy2', color: '#00ff00' },
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.be.an('object');
+      expect(result).to.deep.equal({
+        'sensor.power2': '#ff0000',
+        'sensor.energy2': '#00ff00',
+      });
+      expect(result).to.not.have.property('sensor.power1');
+      expect(result).to.not.have.property('sensor.energy1');
+    });
+
+    it('should handle empty entities array', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.be.an('object');
+      expect(result).to.deep.equal({});
+    });
+
+    it('should handle rgba color values', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: 'rgba(255, 0, 0, 0.8)' },
+          { entity_id: 'sensor.power2', color: 'rgba(0, 255, 0, 0.8)' },
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.deep.equal({
+        'sensor.power1': 'rgba(255, 0, 0, 0.8)',
+        'sensor.power2': 'rgba(0, 255, 0, 0.8)',
+      });
+    });
+
+    it('should handle hex color values', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: '#ff0000' },
+          { entity_id: 'sensor.power2', color: '#00ff00' },
+          { entity_id: 'sensor.power3', color: '#0000ff' },
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.deep.equal({
+        'sensor.power1': '#ff0000',
+        'sensor.power2': '#00ff00',
+        'sensor.power3': '#0000ff',
+      });
+    });
+
+    it('should handle named color values', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: 'red' },
+          { entity_id: 'sensor.power2', color: 'blue' },
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.deep.equal({
+        'sensor.power1': 'red',
+        'sensor.power2': 'blue',
+      });
+    });
+
+    it('should handle duplicate entity IDs (last one wins)', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: '#ff0000' },
+          { entity_id: 'sensor.power1', color: '#00ff00' },
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.deep.equal({
+        'sensor.power1': '#00ff00',
+      });
+    });
+
+    it('should only include entities with color property', () => {
+      const config: Config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'sensor.power1', color: '#ff0000' },
+          { entity_id: 'sensor.power2' }, // No color property
+        ],
+      };
+
+      const result = getEntityColorMap(config);
+
+      expect(result).to.deep.equal({
+        'sensor.power1': '#ff0000',
+      });
+      expect(result).to.not.have.property('sensor.power2');
     });
   });
 });

@@ -164,9 +164,53 @@ The card will automatically:
 | -------- | ------ | ------------ | ------------------------------------------------------------- |
 | area     | string | **Required** | The area name to automatically discover energy/power entities |
 | name     | string | Area Energy  | Custom name for the card                                      |
-| entities | array  | _auto_       | Custom list of entities to include                            |
+| entities | array  | _auto_       | Custom list of entities to include (see Entity Configuration) |
 | chart    | object | _none_       | Chart configuration options                                   |
 | features | array  | _none_       | Feature flags to enable/disable functionality                 |
+
+### Entity Configuration
+
+The `entities` field accepts two formats:
+
+**String Format** (simple entity IDs):
+
+```yaml
+entities:
+  - sensor.living_room_power
+  - sensor.living_room_energy
+```
+
+**Object Format** (with custom colors):
+
+```yaml
+entities:
+  - entity_id: sensor.living_room_power
+    color: '#ff0000' # Hex color
+  - entity_id: sensor.living_room_energy
+    color: 'rgba(0, 255, 0, 0.8)' # RGBA color with transparency
+  - entity_id: sensor.kitchen_power
+    color: 'blue' # Named color
+  - entity_id: sensor.bedroom_power
+    color: 'primary' # Home Assistant theme color
+  - entity_id: sensor.bedroom_energy
+    color: 'accent' # Home Assistant theme color
+```
+
+**Mixed Format** (combine both):
+
+```yaml
+entities:
+  - sensor.living_room_power # Uses default color
+  - entity_id: sensor.living_room_energy
+    color: '#00ff00' # Custom color
+```
+
+When using the object format:
+
+- `entity_id` (required): The entity ID string
+- `color` (optional): Color value in any CSS format (hex, rgba, named colors, etc.) or Home Assistant theme colors (primary, accent, red, blue, green, etc.)
+
+Entities without custom colors will use the default color scheme based on their type (power/energy) and position.
 
 ### Chart Configuration
 
@@ -234,6 +278,21 @@ entities:
   - sensor.living_room_energy
 ```
 
+### With Custom Entity Colors
+
+```yaml
+type: custom:area-energy-card
+area: living_room
+entities:
+  - sensor.living_room_power # Default color
+  - entity_id: sensor.living_room_energy
+    color: '#ff6b6b' # Custom red color
+  - entity_id: sensor.kitchen_power
+    color: '#4ecdc4' # Custom teal color
+  - entity_id: sensor.bedroom_power
+    color: 'primary' # Home Assistant theme color
+```
+
 ### With Chart Configuration
 
 ```yaml
@@ -262,8 +321,9 @@ type: custom:area-energy-card
 area: living_room
 name: 'Living Room Energy Monitor'
 entities:
-  - sensor.living_room_power
-  - sensor.living_room_energy
+  - sensor.living_room_power # Default color
+  - entity_id: sensor.living_room_energy
+    color: '#10b981' # Custom green color
 chart:
   legend_style: entities
   axis_style: all
@@ -289,6 +349,7 @@ _Coming soon - screenshots of the card in action will be added here._
 - [x] **`Performance optimization`**: Efficient rendering with memoization
 - [x] **`TypeScript support`**: Full type safety and modern development
 - [x] **`UI improvements`**: Tweaks and changes for the UI - thanks @LamarcLS
+- [x] **`Custom entity colors`**: Choose colors for individual chart items - thanks @LamarcLS
 
 ## Contributing
 

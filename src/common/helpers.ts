@@ -1,6 +1,7 @@
 import { getDevice } from '@/delegates/retrievers/device';
 import { EntityState } from '@/types/entity';
 import type { HomeAssistant } from '@hass/types';
+import type { Config } from '@type/config';
 
 export interface HistoryDataPoint {
   timestamp: Date;
@@ -182,3 +183,35 @@ export const getAreaEntities = (
 
   return entities.map((e) => e.entity_id);
 };
+
+/**
+ * Extracts entity IDs from config, handling both string and object formats
+ * @param config Configuration object
+ * @returns Array of entity IDs
+ */
+export function getEntityIds(config: Config): string[] {
+  if (!config.entities) {
+    return [];
+  }
+  return config.entities.map((entity) =>
+    typeof entity === 'string' ? entity : entity.entity_id,
+  );
+}
+
+/**
+ * Creates a map of entity_id → color from config
+ * @param config Configuration object
+ * @returns Record mapping entity IDs to their custom colors
+ */
+export function getEntityColorMap(config: Config): Record<string, string> {
+  if (!config.entities) {
+    return {};
+  }
+  const colorMap: Record<string, string> = {};
+  config.entities.forEach((entity) => {
+    if (typeof entity === 'object' && entity.color) {
+      colorMap[entity.entity_id] = entity.color;
+    }
+  });
+  return colorMap;
+}

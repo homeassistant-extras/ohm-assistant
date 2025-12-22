@@ -1,3 +1,9 @@
+/** Entity configuration with optional color */
+export interface EntityConfig {
+  entity_id: string;
+  color: string;
+}
+
 export interface Config {
   /** Area to automatically find energy/power entities from */
   area: string;
@@ -5,8 +11,8 @@ export interface Config {
   /** Name of the card */
   name?: string;
 
-  /** Entities to include in the card */
-  entities?: string[];
+  /** Entities to include in the card - can be entity IDs (strings) or objects with entity_id and color */
+  entities?: (string | EntityConfig)[];
 
   /** Chart settings */
   chart?: ChartConfig;

@@ -1,4 +1,4 @@
-import { getEntityColor } from '@common/colors';
+import { getEntityColor, resolveColor } from '@common/colors';
 import type { HistoryDataPoint } from '@common/helpers';
 import {
   Chart,
@@ -140,6 +140,7 @@ export interface ChartOptions {
   hideXAxis?: boolean;
   hideYAxis?: boolean;
   lineType?: 'normal' | 'gradient' | 'gradient_no_fill' | 'no_fill';
+  entityColorMap?: Record<string, string>;
 }
 
 /**
@@ -160,6 +161,7 @@ export function createChartConfig(
     hideXAxis = false,
     hideYAxis = false,
     lineType = 'normal',
+    entityColorMap = {},
   } = options;
 
   // Use smooth curves with stepped lines for energy data
@@ -179,7 +181,15 @@ export function createChartConfig(
         y: d.value,
       }));
 
-      const entityColor = getEntityColor(index, 'power', powerData.length);
+      const entityColor = resolveColor(
+        getEntityColor(
+          entityData.entityId,
+          index,
+          'power',
+          powerData.length,
+          entityColorMap,
+        ),
+      );
 
       datasets.push({
         label: `${entityData.friendlyName} (W)`,
@@ -227,7 +237,15 @@ export function createChartConfig(
         y: d.value,
       }));
 
-      const entityColor = getEntityColor(index, 'energy', energyData.length);
+      const entityColor = resolveColor(
+        getEntityColor(
+          entityData.entityId,
+          index,
+          'energy',
+          energyData.length,
+          entityColorMap,
+        ),
+      );
 
       datasets.push({
         label: `${entityData.friendlyName} (kWh)`,

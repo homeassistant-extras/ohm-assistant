@@ -2,6 +2,7 @@
  * https://github.com/home-assistant/frontend/blob/dev/src/types.ts
  */
 
+import type { LocalizeFunc } from './common/translations/localize';
 import type { AreaRegistryEntry } from './data/area_registry';
 import type { DeviceRegistryEntry } from './data/device_registry';
 import type { EntityRegistryDisplayEntry } from './data/entity_registry';
@@ -12,5 +13,7 @@ export interface HomeAssistant {
   entities: Record<string, EntityRegistryDisplayEntry>;
   devices: Record<string, DeviceRegistryEntry>;
   areas: Record<string, AreaRegistryEntry>;
+  localize: LocalizeFunc<string>;
+  language: string;
   callWS<T>(msg: MessageBase): Promise<T>;
 }

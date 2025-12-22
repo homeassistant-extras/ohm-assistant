@@ -3,6 +3,7 @@ import { EntityState } from '@/types/entity';
 import { stateActive } from '@hass/common/entity/state_active';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
+import { getEntityIds } from '@common/helpers';
 import { getDevice } from '../retrievers/device';
 import { getState } from '../retrievers/state';
 
@@ -25,10 +26,13 @@ export const getZapped = (
   let activeLights = 0;
   let activeSwitches = 0;
 
+  // Get list of configured entity IDs
+  const configEntityIds = getEntityIds(config);
+
   // Process all entities in the area
   Object.values(hass.entities).forEach((entity) => {
     // Check if this entity is explicitly configured
-    const isConfigEntity = config.entities?.includes(entity.entity_id);
+    const isConfigEntity = configEntityIds.includes(entity.entity_id);
 
     const device = getDevice(hass.devices, entity.device_id);
     const isInArea = [entity.area_id, device?.area_id].includes(config.area);

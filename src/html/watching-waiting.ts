@@ -11,6 +11,7 @@ import { stateDisplay } from './state-display';
  * @param config - The configuration
  * @param powerEntities - The power entities
  * @param energyEntities - The energy entities
+ * @param entityColorMap - Map of entity_id → color for custom colors
  * @returns HTML template for the legend or nothing if hidden
  */
 export function renderLegend(
@@ -18,6 +19,7 @@ export function renderLegend(
   config: Config,
   powerEntities: EntityState[],
   energyEntities: EntityState[],
+  entityColorMap: Record<string, string> = {},
 ): TemplateResult | typeof nothing {
   if (!((config.chart?.legend_style || 'entities') === 'entities')) {
     return nothing;
@@ -32,9 +34,11 @@ export function renderLegend(
               <span
                 class="legend-color"
                 style="background: ${getEntityColor(
+                  entity.entity_id,
                   index,
                   'power',
                   powerEntities.length,
+                  entityColorMap,
                 )}"
               ></span>
               <span class="legend-label"
@@ -53,9 +57,11 @@ export function renderLegend(
               <span
                 class="legend-color"
                 style="background: ${getEntityColor(
+                  entity.entity_id,
                   index,
                   'energy',
                   energyEntities.length,
+                  entityColorMap,
                 )}"
               ></span>
               <span class="legend-label"

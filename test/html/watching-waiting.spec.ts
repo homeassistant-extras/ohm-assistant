@@ -48,6 +48,7 @@ describe('watching-waiting', () => {
         configWithHiddenLegend,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
       expect(result).to.equal(nothing);
     });
@@ -60,6 +61,7 @@ describe('watching-waiting', () => {
         configWithoutChart,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
       // When chart config is undefined, it defaults to 'entities' so should return a template
       expect(result).to.not.equal(nothing);
@@ -73,6 +75,7 @@ describe('watching-waiting', () => {
         mockConfig,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
 
       expect(result).to.not.equal(nothing);
@@ -81,7 +84,13 @@ describe('watching-waiting', () => {
     });
 
     it('should render power entities in legend', async () => {
-      const result = renderLegend(mockHass, mockConfig, mockPowerEntities, []);
+      const result = renderLegend(
+        mockHass,
+        mockConfig,
+        mockPowerEntities,
+        [],
+        {},
+      );
 
       expect(result).to.not.equal(nothing);
 
@@ -103,7 +112,13 @@ describe('watching-waiting', () => {
     });
 
     it('should render energy entities in legend', async () => {
-      const result = renderLegend(mockHass, mockConfig, [], mockEnergyEntities);
+      const result = renderLegend(
+        mockHass,
+        mockConfig,
+        [],
+        mockEnergyEntities,
+        {},
+      );
 
       expect(result).to.not.equal(nothing);
 
@@ -130,6 +145,7 @@ describe('watching-waiting', () => {
         mockConfig,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
 
       expect(result).to.not.equal(nothing);
@@ -167,6 +183,7 @@ describe('watching-waiting', () => {
         mockConfig,
         [entitiesWithoutFriendlyName[0]],
         [entitiesWithoutFriendlyName[1]],
+        {},
       );
 
       expect(result).to.not.equal(nothing);
@@ -182,7 +199,7 @@ describe('watching-waiting', () => {
     });
 
     it('should handle empty entity arrays', async () => {
-      const result = renderLegend(mockHass, mockConfig, [], []);
+      const result = renderLegend(mockHass, mockConfig, [], [], {});
 
       expect(result).to.not.equal(nothing);
 
@@ -199,6 +216,7 @@ describe('watching-waiting', () => {
         mockConfig,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
 
       expect(result).to.not.equal(nothing);
@@ -223,6 +241,7 @@ describe('watching-waiting', () => {
         mockConfig,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
 
       expect(result).to.not.equal(nothing);
@@ -241,6 +260,7 @@ describe('watching-waiting', () => {
         mockConfig,
         mockPowerEntities,
         mockEnergyEntities,
+        {},
       );
 
       expect(result).to.not.equal(nothing);
@@ -262,6 +282,7 @@ describe('watching-waiting', () => {
         mockConfig,
         singlePowerEntity,
         singleEnergyEntity,
+        {},
       );
 
       expect(result).to.not.equal(nothing);
