@@ -53,7 +53,10 @@ export function resolveColor(color: string): string {
   }
 
   // Fallback for non-browser environments
-  if (typeof document === 'undefined') {
+  if (
+    typeof document === 'undefined' ||
+    typeof getComputedStyle === 'undefined'
+  ) {
     return color;
   }
 
@@ -61,7 +64,8 @@ export function resolveColor(color: string): string {
   const varName = color.slice(4, -1); // Remove "var(" and ")"
   const style = getComputedStyle(document.body);
   const resolvedColor = style.getPropertyValue(varName).trim();
-  return resolvedColor ?? color;
+  // Return original color if variable is empty or doesn't exist (getPropertyValue returns empty string)
+  return resolvedColor || color;
 }
 
 /**

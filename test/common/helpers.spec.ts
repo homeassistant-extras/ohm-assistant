@@ -6,8 +6,8 @@ import {
   fetchPowerEnergyData,
   fetchRecentStatistics,
   getAreaEntities,
-  getEntityIds,
   getEntityColorMap,
+  getEntityIds,
 } from '../../src/common/helpers';
 import type { HomeAssistant } from '../../src/hass/types';
 import type { Config } from '../../src/types/config';
@@ -678,12 +678,8 @@ describe('helpers', () => {
   describe('fetchPowerEnergyData', () => {
     it('should include friendlyName in returned EntityData', async () => {
       const mockStatsData = {
-        'sensor.power1': [
-          { start: 1640995200, end: 1640995500, mean: 100 },
-        ],
-        'sensor.energy1': [
-          { start: 1640995200, end: 1640995500, mean: 1.5 },
-        ],
+        'sensor.power1': [{ start: 1640995200, end: 1640995500, mean: 100 }],
+        'sensor.energy1': [{ start: 1640995200, end: 1640995500, mean: 1.5 }],
       };
 
       callWSStub.resolves(mockStatsData);
@@ -700,7 +696,10 @@ describe('helpers', () => {
         {
           entity_id: 'sensor.energy1',
           state: '1.5',
-          attributes: { friendly_name: 'Kitchen Energy', device_class: 'energy' },
+          attributes: {
+            friendly_name: 'Kitchen Energy',
+            device_class: 'energy',
+          },
         },
       ] as any;
 
@@ -712,12 +711,21 @@ describe('helpers', () => {
       );
 
       expect(result.powerData).to.have.length(1);
-      expect(result.powerData[0]).to.have.property('friendlyName', 'Kitchen Power');
+      expect(result.powerData[0]).to.have.property(
+        'friendlyName',
+        'Kitchen Power',
+      );
       expect(result.powerData[0]).to.have.property('entityId', 'sensor.power1');
 
       expect(result.energyData).to.have.length(1);
-      expect(result.energyData[0]).to.have.property('friendlyName', 'Kitchen Energy');
-      expect(result.energyData[0]).to.have.property('entityId', 'sensor.energy1');
+      expect(result.energyData[0]).to.have.property(
+        'friendlyName',
+        'Kitchen Energy',
+      );
+      expect(result.energyData[0]).to.have.property(
+        'entityId',
+        'sensor.energy1',
+      );
     });
 
     it('should fallback to entityId when friendly_name is not set', async () => {
@@ -739,7 +747,10 @@ describe('helpers', () => {
       );
 
       expect(result.powerData).to.have.length(1);
-      expect(result.powerData[0]).to.have.property('friendlyName', 'sensor.power1');
+      expect(result.powerData[0]).to.have.property(
+        'friendlyName',
+        'sensor.power1',
+      );
     });
   });
 
@@ -1022,7 +1033,7 @@ describe('helpers', () => {
         area: 'living_room',
         entities: [
           { entity_id: 'sensor.power1', color: '#ff0000' },
-          { entity_id: 'sensor.power2' }, // No color property
+          { entity_id: 'sensor.power2', color: '' }, // No color property
         ],
       };
 
