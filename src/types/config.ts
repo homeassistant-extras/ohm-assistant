@@ -23,6 +23,12 @@ export interface Config {
 
 /** Chart configuration */
 export interface ChartConfig {
+  /** Chart type */
+  chart_type?: ChartType;
+
+  /** Total power entity ID for calculating untracked power (bar charts only) */
+  total_power_entity?: string;
+
   /** Legend style */
   legend_style?: LegendStyle;
 
@@ -38,6 +44,9 @@ export type LegendStyle = 'entities' | 'compact' | 'none';
 
 /** Axis style options */
 export type AxisStyle = 'all' | 'x_only' | 'y_only' | 'none';
+
+/** Chart type options */
+export type ChartType = 'line' | 'stacked_bar';
 
 /** Line type options */
 export type LineType = 'normal' | 'gradient' | 'gradient_no_fill' | 'no_fill';

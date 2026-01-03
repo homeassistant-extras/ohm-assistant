@@ -62,11 +62,17 @@ global.getComputedStyle = (element: Element): CSSStyleDeclaration => {
   const mockStyle = {
     getPropertyValue: (property: string): string => {
       // Check element's inline styles first
-      if (element instanceof HTMLElement && element.style.getPropertyValue(property)) {
+      if (
+        element instanceof HTMLElement &&
+        element.style.getPropertyValue(property)
+      ) {
         return element.style.getPropertyValue(property);
       }
       // Fall back to document root CSS variables
-      return dom.window.document.documentElement.style.getPropertyValue(property) || '';
+      return (
+        dom.window.document.documentElement.style.getPropertyValue(property) ||
+        ''
+      );
     },
   } as CSSStyleDeclaration;
   return mockStyle;

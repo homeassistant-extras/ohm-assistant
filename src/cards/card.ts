@@ -153,6 +153,7 @@ export class AreaEnergy extends LitElement {
           this._powerEntities,
           this._energyEntities,
           getEntityColorMap(this._config),
+          this._currentData?.untrackedPowerData,
         )}
       </ha-card>
     `;
@@ -204,13 +205,21 @@ export class AreaEnergy extends LitElement {
     this._error = undefined;
 
     try {
-      // Fetch power and energy data
+      // Determine chart type and adjust data aggregation accordingly
+      const chartType = this._config.chart?.chart_type || 'line';
+      // Use hourly aggregation for bar charts to reduce data points and make bars larger
+      // Use 5-minute aggregation for line charts for smoother lines
+      const period = chartType === 'stacked_bar' ? 'hour' : '5minute';
+
+      // Fetch power and energy data (include total power entity for untracked power calculation)
+      const totalPowerEntityId = this._config.chart?.total_power_entity;
       const data = await fetchPowerEnergyData(
         this._hass,
         this._powerEntities,
         this._energyEntities,
         24,
-        '5minute',
+        period,
+        totalPowerEntityId,
       );
 
       if (data.powerData.length === 0 && data.energyData.length === 0) {
@@ -241,6 +250,7 @@ export class AreaEnergy extends LitElement {
       const chartData: ChartData = {
         powerData: data.powerData,
         energyData: data.energyData,
+        untrackedPowerData: data.untrackedPowerData,
       };
 
       const legendStyle = this._config.chart?.legend_style || 'entities';
@@ -253,6 +263,7 @@ export class AreaEnergy extends LitElement {
         showLegend: legendStyle === 'compact',
         hideXAxis: axisStyle === 'y_only' || axisStyle === 'none',
         hideYAxis: axisStyle === 'x_only' || axisStyle === 'none',
+        chartType: this._config.chart?.chart_type || 'line',
         lineType: this._config.chart?.line_type || 'normal',
         entityColorMap,
       });

@@ -752,6 +752,316 @@ describe('helpers', () => {
         'sensor.power1',
       );
     });
+
+    describe('untracked power calculation', () => {
+      it('should calculate untracked power when total power entity is provided', async () => {
+        const baseTime = new Date('2024-01-01T10:00:00Z').getTime() / 1000;
+        const mockStatsData = {
+          'sensor.power1': [
+            { start: baseTime, end: baseTime + 300, mean: 20 },
+            { start: baseTime + 3600, end: baseTime + 3900, mean: 25 },
+          ],
+          'sensor.power2': [
+            { start: baseTime, end: baseTime + 300, mean: 15 },
+            { start: baseTime + 3600, end: baseTime + 3900, mean: 20 },
+          ],
+          'sensor.total_power': [
+            { start: baseTime, end: baseTime + 300, mean: 50 }, // Total 50, tracked 35, untracked 15
+            { start: baseTime + 3600, end: baseTime + 3900, mean: 60 }, // Total 60, tracked 45, untracked 15
+          ],
+        };
+
+        callWSStub.resolves(mockStatsData);
+
+        mockHass.states = {
+          'sensor.total_power': {
+            entity_id: 'sensor.total_power',
+            state: '50',
+            attributes: {
+              friendly_name: 'Total Power',
+              device_class: 'power',
+            },
+          },
+        } as any;
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '20',
+            attributes: { device_class: 'power' },
+          },
+          {
+            entity_id: 'sensor.power2',
+            state: '15',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+          '5minute',
+          'sensor.total_power',
+        );
+
+        expect(result.untrackedPowerData).to.exist;
+        expect(result.untrackedPowerData?.entityId).to.equal(
+          'sensor.total_power',
+        );
+        expect(result.untrackedPowerData?.friendlyName).to.equal(
+          'Total Power (Untracked)',
+        );
+        expect(result.untrackedPowerData?.data).to.have.length(2);
+        expect(result.untrackedPowerData?.data[0].value).to.equal(15); // 50 - 35
+        expect(result.untrackedPowerData?.data[1].value).to.equal(15); // 60 - 45
+      });
+
+      it('should handle untracked power when tracked power exceeds total', async () => {
+        const baseTime = new Date('2024-01-01T10:00:00Z').getTime() / 1000;
+        const mockStatsData = {
+          'sensor.power1': [{ start: baseTime, end: baseTime + 300, mean: 60 }],
+          'sensor.total_power': [
+            { start: baseTime, end: baseTime + 300, mean: 50 }, // Total 50, tracked 60, untracked should be 0
+          ],
+        };
+
+        callWSStub.resolves(mockStatsData);
+
+        mockHass.states = {
+          'sensor.total_power': {
+            entity_id: 'sensor.total_power',
+            state: '50',
+            attributes: { friendly_name: 'Total Power', device_class: 'power' },
+          },
+        } as any;
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '60',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+          '5minute',
+          'sensor.total_power',
+        );
+
+        // Should filter out negative/zero values, so untrackedPowerData should be undefined
+        // (since we only create it if there's at least one positive value)
+        if (result.untrackedPowerData) {
+          expect(result.untrackedPowerData.data).to.have.length(0);
+        } else {
+          // It's also valid for it to be undefined when all values are filtered out
+          expect(result.untrackedPowerData).to.be.undefined;
+        }
+      });
+
+      it('should not include untracked power when total power entity is not provided', async () => {
+        const mockStatsData = {
+          'sensor.power1': [{ start: 1640995200, end: 1640995500, mean: 100 }],
+        };
+
+        callWSStub.resolves(mockStatsData);
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '100',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+        );
+
+        expect(result.untrackedPowerData).to.be.undefined;
+      });
+
+      it('should not include untracked power when total power data is empty', async () => {
+        callWSStub.resolves({
+          'sensor.power1': [{ start: 1640995200, end: 1640995500, mean: 100 }],
+          'sensor.total_power': [],
+        });
+
+        mockHass.states = {
+          'sensor.total_power': {
+            entity_id: 'sensor.total_power',
+            state: '50',
+            attributes: { friendly_name: 'Total Power', device_class: 'power' },
+          },
+        } as any;
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '100',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+          '5minute',
+          'sensor.total_power',
+        );
+
+        expect(result.untrackedPowerData).to.be.undefined;
+      });
+
+      it('should handle multiple tracked power entities correctly', async () => {
+        const baseTime = new Date('2024-01-01T10:00:00Z').getTime() / 1000;
+        const mockStatsData = {
+          'sensor.power1': [{ start: baseTime, end: baseTime + 300, mean: 10 }],
+          'sensor.power2': [{ start: baseTime, end: baseTime + 300, mean: 20 }],
+          'sensor.power3': [{ start: baseTime, end: baseTime + 300, mean: 15 }],
+          'sensor.total_power': [
+            { start: baseTime, end: baseTime + 300, mean: 50 }, // Total 50, tracked 45, untracked 5
+          ],
+        };
+
+        callWSStub.resolves(mockStatsData);
+
+        mockHass.states = {
+          'sensor.total_power': {
+            entity_id: 'sensor.total_power',
+            state: '50',
+            attributes: { friendly_name: 'Total Power', device_class: 'power' },
+          },
+        } as any;
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '10',
+            attributes: { device_class: 'power' },
+          },
+          {
+            entity_id: 'sensor.power2',
+            state: '20',
+            attributes: { device_class: 'power' },
+          },
+          {
+            entity_id: 'sensor.power3',
+            state: '15',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+          '5minute',
+          'sensor.total_power',
+        );
+
+        expect(result.untrackedPowerData).to.exist;
+        expect(result.untrackedPowerData?.data[0].value).to.equal(5); // 50 - (10 + 20 + 15)
+      });
+
+      it('should use entityId when total power entity has no friendly_name', async () => {
+        const baseTime = new Date('2024-01-01T10:00:00Z').getTime() / 1000;
+        const mockStatsData = {
+          'sensor.power1': [{ start: baseTime, end: baseTime + 300, mean: 20 }],
+          'sensor.total_power': [
+            { start: baseTime, end: baseTime + 300, mean: 50 },
+          ],
+        };
+
+        callWSStub.resolves(mockStatsData);
+
+        mockHass.states = {
+          'sensor.total_power': {
+            entity_id: 'sensor.total_power',
+            state: '50',
+            attributes: { device_class: 'power' }, // No friendly_name
+          },
+        } as any;
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '20',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+          '5minute',
+          'sensor.total_power',
+        );
+
+        expect(result.untrackedPowerData).to.exist;
+        expect(result.untrackedPowerData?.friendlyName).to.equal(
+          'sensor.total_power (Untracked)',
+        );
+      });
+
+      it('should filter out zero untracked power values', async () => {
+        const baseTime = new Date('2024-01-01T10:00:00Z').getTime() / 1000;
+        const mockStatsData = {
+          'sensor.power1': [
+            { start: baseTime, end: baseTime + 300, mean: 20 },
+            { start: baseTime + 3600, end: baseTime + 3900, mean: 30 },
+          ],
+          'sensor.total_power': [
+            { start: baseTime, end: baseTime + 300, mean: 20 }, // Exact match, untracked = 0
+            { start: baseTime + 3600, end: baseTime + 3900, mean: 35 }, // Untracked = 5
+          ],
+        };
+
+        callWSStub.resolves(mockStatsData);
+
+        mockHass.states = {
+          'sensor.total_power': {
+            entity_id: 'sensor.total_power',
+            state: '20',
+            attributes: { friendly_name: 'Total Power', device_class: 'power' },
+          },
+        } as any;
+
+        const powerEntities = [
+          {
+            entity_id: 'sensor.power1',
+            state: '20',
+            attributes: { device_class: 'power' },
+          },
+        ] as any;
+
+        const result = await fetchPowerEnergyData(
+          mockHass,
+          powerEntities,
+          [],
+          24,
+          '5minute',
+          'sensor.total_power',
+        );
+
+        // Should only include the one positive untracked value
+        expect(result.untrackedPowerData?.data).to.have.length(1);
+        expect(result.untrackedPowerData?.data[0].value).to.equal(5);
+      });
+    });
   });
 
   describe('getEntityIds', () => {

@@ -511,7 +511,7 @@ describe('AreaEnergy', () => {
           mockPowerEntities,
           mockEnergyEntities,
           24,
-          '5minute',
+          '5minute', // Default is line chart, so uses 5minute
         ),
       ).to.be.true;
 
@@ -664,6 +664,162 @@ describe('AreaEnergy', () => {
       // Test that the card renders without errors
       const el = await fixture(card.render() as TemplateResult);
       expect(el).to.exist;
+    });
+
+    it('should use hourly period for stacked bar charts', async () => {
+      const barChartConfig = {
+        ...mockConfig,
+        chart: {
+          chart_type: 'stacked_bar' as const,
+        },
+      };
+
+      const card = new AreaEnergy();
+      card.setConfig(barChartConfig);
+      card.hass = mockHass;
+
+      // Mock canvas element
+      const mockCanvas = {
+        width: 400,
+        height: 300,
+        getContext: () => ({
+          createLinearGradient: () => ({
+            addColorStop: () => {},
+          }),
+        }),
+      } as any;
+
+      // Mock shadowRoot
+      Object.defineProperty(card, 'shadowRoot', {
+        value: {
+          querySelector: () => mockCanvas,
+        },
+        writable: true,
+      });
+
+      // Call firstUpdated - this should call the real _initChart method
+      card.firstUpdated();
+
+      // Wait for the async _initChart to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify that fetchPowerEnergyData was called with 'hour' period for bar chart
+      expect(fetchPowerEnergyDataStub.calledOnce).to.be.true;
+      expect(
+        fetchPowerEnergyDataStub.calledWith(
+          mockHass,
+          mockPowerEntities,
+          mockEnergyEntities,
+          24,
+          'hour', // Bar charts use hourly aggregation
+        ),
+      ).to.be.true;
+
+      // Verify that createChart was called with chartType
+      expect(createChartStub.calledOnce).to.be.true;
+      const createChartCall = createChartStub.firstCall;
+      expect(createChartCall.args[2]).to.have.property(
+        'chartType',
+        'stacked_bar',
+      );
+    });
+
+    it('should use 5minute period for line charts', async () => {
+      const lineChartConfig = {
+        ...mockConfig,
+        chart: {
+          chart_type: 'line' as const,
+        },
+      };
+
+      const card = new AreaEnergy();
+      card.setConfig(lineChartConfig);
+      card.hass = mockHass;
+
+      // Mock canvas element
+      const mockCanvas = {
+        width: 400,
+        height: 300,
+        getContext: () => ({
+          createLinearGradient: () => ({
+            addColorStop: () => {},
+          }),
+        }),
+      } as any;
+
+      // Mock shadowRoot
+      Object.defineProperty(card, 'shadowRoot', {
+        value: {
+          querySelector: () => mockCanvas,
+        },
+        writable: true,
+      });
+
+      // Call firstUpdated
+      card.firstUpdated();
+
+      // Wait for the async _initChart to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify that fetchPowerEnergyData was called with '5minute' period for line chart
+      expect(fetchPowerEnergyDataStub.calledOnce).to.be.true;
+      expect(
+        fetchPowerEnergyDataStub.calledWith(
+          mockHass,
+          mockPowerEntities,
+          mockEnergyEntities,
+          24,
+          '5minute', // Line charts use 5minute aggregation
+        ),
+      ).to.be.true;
+    });
+
+    it('should default to line chart when chart_type is not specified', async () => {
+      const card = new AreaEnergy();
+      card.setConfig({ area: 'area_1' }); // No chart config
+      card.hass = mockHass;
+
+      // Mock canvas element
+      const mockCanvas = {
+        width: 400,
+        height: 300,
+        getContext: () => ({
+          createLinearGradient: () => ({
+            addColorStop: () => {},
+          }),
+        }),
+      } as any;
+
+      // Mock shadowRoot
+      Object.defineProperty(card, 'shadowRoot', {
+        value: {
+          querySelector: () => mockCanvas,
+        },
+        writable: true,
+      });
+
+      // Call firstUpdated
+      card.firstUpdated();
+
+      // Wait for the async _initChart to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify that fetchPowerEnergyData was called with '5minute' period (default)
+      expect(fetchPowerEnergyDataStub.calledOnce).to.be.true;
+      expect(
+        fetchPowerEnergyDataStub.calledWith(
+          mockHass,
+          mockPowerEntities,
+          mockEnergyEntities,
+          24,
+          '5minute', // Default is line chart
+        ),
+      ).to.be.true;
+
+      // Verify that createChart was called with default chartType 'line'
+      expect(createChartStub.calledOnce).to.be.true;
+      const createChartCall = createChartStub.firstCall;
+      expect(createChartCall.args[2]).to.have.property('chartType', 'line');
     });
   });
 

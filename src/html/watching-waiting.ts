@@ -3,6 +3,7 @@ import { getEntityColor } from '@common/colors';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
 import { html, nothing, type TemplateResult } from 'lit';
+import type { EntityData } from './chart/chart-config-builder';
 import { stateDisplay } from './state-display';
 
 /**
@@ -12,6 +13,7 @@ import { stateDisplay } from './state-display';
  * @param powerEntities - The power entities
  * @param energyEntities - The energy entities
  * @param entityColorMap - Map of entity_id → color for custom colors
+ * @param untrackedPowerData - Optional untracked power data to display
  * @returns HTML template for the legend or nothing if hidden
  */
 export function renderLegend(
@@ -20,6 +22,7 @@ export function renderLegend(
   powerEntities: EntityState[],
   energyEntities: EntityState[],
   entityColorMap: Record<string, string> = {},
+  untrackedPowerData?: EntityData,
 ): TemplateResult | typeof nothing {
   if (!((config.chart?.legend_style || 'entities') === 'entities')) {
     return nothing;
@@ -73,6 +76,25 @@ export function renderLegend(
           </div>
         `,
       )}
+      ${untrackedPowerData && untrackedPowerData.data.length > 0
+        ? html`
+            <div class="legend-item">
+              <div>
+                <span
+                  class="legend-color"
+                  style="background: rgba(128, 128, 128, 0.7)"
+                ></span>
+                <span class="legend-label"
+                  >${untrackedPowerData.friendlyName} (W)</span
+                >
+              </div>
+              <span class="state-display"
+                >${untrackedPowerData.data.at(-1)?.value.toFixed(1) ?? '0.0'}
+                W</span
+              >
+            </div>
+          `
+        : nothing}
     </div>
   `;
 }

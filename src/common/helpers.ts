@@ -122,14 +122,18 @@ export interface EntityData {
 export interface PowerEnergyData {
   powerData: EntityData[];
   energyData: EntityData[];
+  untrackedPowerData?: EntityData;
 }
 
 /**
  * Fetch power and energy data for the given entities
  * @param hass Home Assistant instance
- * @param config Configuration
+ * @param powerEntities Power entities to fetch
+ * @param energyEntities Energy entities to fetch
  * @param hours Number of hours to fetch (default: 24)
  * @param period Aggregation period (default: '5minute')
+ * @param totalPowerEntityId Optional total power entity ID for calculating untracked power
+ * @returns Power and energy data with optional untracked power data
  */
 export async function fetchPowerEnergyData(
   hass: HomeAssistant,
@@ -137,6 +141,7 @@ export async function fetchPowerEnergyData(
   energyEntities: EntityState[],
   hours: number = 24,
   period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+  totalPowerEntityId?: string,
 ): Promise<PowerEnergyData> {
   // Fetch data for all power and energy entities
   const powerPromises = powerEntities.map((entity) =>
@@ -146,12 +151,18 @@ export async function fetchPowerEnergyData(
     fetchRecentStatistics(hass, entity.entity_id, hours, period),
   );
 
-  const [powerResults, energyResults] = await Promise.all([
+  // Fetch total power entity data if provided
+  const totalPowerPromise = totalPowerEntityId
+    ? fetchRecentStatistics(hass, totalPowerEntityId, hours, period)
+    : Promise.resolve([]);
+
+  const [powerResults, energyResults, totalPowerResult] = await Promise.all([
     Promise.all(powerPromises),
     Promise.all(energyPromises),
+    totalPowerPromise,
   ]);
 
-  return {
+  const result: PowerEnergyData = {
     powerData: powerEntities.map((entity, index) => ({
       entityId: entity.entity_id,
       friendlyName: entity.attributes.friendly_name || entity.entity_id,
@@ -163,6 +174,48 @@ export async function fetchPowerEnergyData(
       data: energyResults[index] || [],
     })),
   };
+
+  // Calculate untracked power if total power entity is provided
+  if (totalPowerEntityId && totalPowerResult.length > 0) {
+    // Create a map of timestamps to tracked power sums
+    const trackedPowerByTimestamp = new Map<number, number>();
+
+    // Sum up all tracked power entities at each timestamp
+    powerResults.forEach((entityData) => {
+      entityData.forEach((point) => {
+        const timestamp = point.timestamp.getTime();
+        const current = trackedPowerByTimestamp.get(timestamp) || 0;
+        trackedPowerByTimestamp.set(timestamp, current + point.value);
+      });
+    });
+
+    // Calculate untracked power: total - tracked
+    const untrackedData: HistoryDataPoint[] = totalPowerResult
+      .map((totalPoint) => {
+        const timestamp = totalPoint.timestamp.getTime();
+        const trackedSum = trackedPowerByTimestamp.get(timestamp) || 0;
+        const untrackedValue = Math.max(0, totalPoint.value - trackedSum);
+
+        return {
+          timestamp: totalPoint.timestamp,
+          value: untrackedValue,
+        };
+      })
+      .filter((point) => point.value > 0); // Only include positive values
+
+    if (untrackedData.length > 0) {
+      const totalPowerEntity = hass.states?.[totalPowerEntityId];
+      const friendlyName =
+        totalPowerEntity?.attributes?.friendly_name || totalPowerEntityId;
+      result.untrackedPowerData = {
+        entityId: totalPowerEntityId,
+        friendlyName: `${friendlyName} (Untracked)`,
+        data: untrackedData,
+      };
+    }
+  }
+
+  return result;
 }
 
 /**

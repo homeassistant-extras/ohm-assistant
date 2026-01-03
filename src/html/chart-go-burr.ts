@@ -1,4 +1,6 @@
 import {
+  BarController,
+  BarElement,
   Chart,
   Filler,
   Legend,
@@ -22,6 +24,8 @@ import {
 Chart.register(
   LineController,
   LineElement,
+  BarController,
+  BarElement,
   PointElement,
   LinearScale,
   TimeScale,

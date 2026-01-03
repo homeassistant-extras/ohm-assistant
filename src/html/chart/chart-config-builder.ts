@@ -11,6 +11,7 @@ export interface EntityData {
 export interface ChartData {
   powerData: EntityData[];
   energyData: EntityData[];
+  untrackedPowerData?: EntityData;
 }
 
 export interface ChartOptions {
@@ -19,6 +20,7 @@ export interface ChartOptions {
   showLegend?: boolean;
   hideXAxis?: boolean;
   hideYAxis?: boolean;
+  chartType?: 'line' | 'stacked_bar';
   lineType?: 'normal' | 'gradient' | 'gradient_no_fill' | 'no_fill';
   entityColorMap?: Record<string, string>;
 }
@@ -128,13 +130,14 @@ export class ChartConfigBuilder {
    * @returns Chart.js configuration object
    */
   build(data: ChartData, options: ChartOptions = {}): ChartConfiguration {
-    const { powerData, energyData } = data;
+    const { powerData, energyData, untrackedPowerData } = data;
     const {
       responsive = true,
       maintainAspectRatio = false,
       showLegend = false,
       hideXAxis = false,
       hideYAxis = false,
+      chartType = 'line',
       lineType = 'normal',
       entityColorMap = {},
     } = options;
@@ -169,10 +172,21 @@ export class ChartConfigBuilder {
           ),
         );
 
-        datasets.push({
+        const powerDataset: any = {
           label: `${entityData.friendlyName} (W)`,
           data: powerChartData,
-          borderColor:
+          borderWidth: chartType === 'stacked_bar' ? 1 : 2,
+          yAxisID: 'y',
+        };
+
+        if (chartType === 'stacked_bar') {
+          // Bar chart configuration
+          powerDataset.backgroundColor = entityColor;
+          powerDataset.borderColor = entityColor;
+          powerDataset.stack = 'power';
+        } else {
+          // Line chart configuration
+          powerDataset.borderColor =
             lineType === 'gradient' || lineType === 'gradient_no_fill'
               ? function (context: any) {
                   const chart = context.chart;
@@ -182,8 +196,8 @@ export class ChartConfigBuilder {
                   }
                   return builder.getPowerGradient(ctx, chartArea, lineType);
                 }
-              : entityColor,
-          backgroundColor:
+              : entityColor;
+          powerDataset.backgroundColor =
             lineType === 'gradient'
               ? function (context: any) {
                   const chart = context.chart;
@@ -195,17 +209,45 @@ export class ChartConfigBuilder {
                 }
               : lineType === 'gradient_no_fill' || lineType === 'no_fill'
                 ? 'transparent'
-                : entityColor.replace('0.8', '0.1'),
-          borderWidth: 2,
-          fill: lineType !== 'gradient_no_fill' && lineType !== 'no_fill',
-          tension: powerTension,
-          stepped: powerStepped,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          yAxisID: 'y',
-        });
+                : entityColor.replace('0.8', '0.1');
+          powerDataset.fill =
+            lineType !== 'gradient_no_fill' && lineType !== 'no_fill';
+          powerDataset.tension = powerTension;
+          powerDataset.stepped = powerStepped;
+          powerDataset.pointRadius = 0;
+          powerDataset.pointHoverRadius = 4;
+        }
+
+        datasets.push(powerDataset);
       }
     });
+
+    // Untracked power data - only for bar charts, stacks on top of tracked power
+    if (
+      chartType === 'stacked_bar' &&
+      untrackedPowerData &&
+      untrackedPowerData.data.length > 0
+    ) {
+      const untrackedChartData = untrackedPowerData.data.map((d) => ({
+        x: d.timestamp.getTime(),
+        y: d.value,
+      }));
+
+      // Use a distinct color for untracked power (gray-ish)
+      const untrackedColor = 'rgba(128, 128, 128, 0.7)';
+
+      const untrackedDataset: any = {
+        label: untrackedPowerData.friendlyName,
+        data: untrackedChartData,
+        backgroundColor: untrackedColor,
+        borderColor: untrackedColor,
+        borderWidth: 1,
+        stack: 'power', // Same stack as power entities so it stacks on top
+        yAxisID: 'y',
+      };
+
+      datasets.push(untrackedDataset);
+    }
 
     // Energy data - create separate dataset for each energy entity
     energyData.forEach((entityData, index) => {
@@ -225,10 +267,21 @@ export class ChartConfigBuilder {
           ),
         );
 
-        datasets.push({
+        const energyDataset: any = {
           label: `${entityData.friendlyName} (kWh)`,
           data: energyChartData,
-          borderColor:
+          borderWidth: chartType === 'stacked_bar' ? 1 : 2,
+          yAxisID: 'y1',
+        };
+
+        if (chartType === 'stacked_bar') {
+          // Bar chart configuration
+          energyDataset.backgroundColor = entityColor;
+          energyDataset.borderColor = entityColor;
+          energyDataset.stack = 'energy';
+        } else {
+          // Line chart configuration
+          energyDataset.borderColor =
             lineType === 'gradient' || lineType === 'gradient_no_fill'
               ? function (context: any) {
                   const chart = context.chart;
@@ -238,8 +291,8 @@ export class ChartConfigBuilder {
                   }
                   return builder.getEnergyGradient(ctx, chartArea, lineType);
                 }
-              : entityColor,
-          backgroundColor:
+              : entityColor;
+          energyDataset.backgroundColor =
             lineType === 'gradient'
               ? function (context: any) {
                   const chart = context.chart;
@@ -251,20 +304,21 @@ export class ChartConfigBuilder {
                 }
               : lineType === 'gradient_no_fill' || lineType === 'no_fill'
                 ? 'transparent'
-                : entityColor.replace('0.8', '0.2'),
-          borderWidth: 2,
-          fill: lineType !== 'gradient_no_fill' && lineType !== 'no_fill',
-          tension: energyTension,
-          stepped: energyStepped,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          yAxisID: 'y1',
-        });
+                : entityColor.replace('0.8', '0.2');
+          energyDataset.fill =
+            lineType !== 'gradient_no_fill' && lineType !== 'no_fill';
+          energyDataset.tension = energyTension;
+          energyDataset.stepped = energyStepped;
+          energyDataset.pointRadius = 0;
+          energyDataset.pointHoverRadius = 4;
+        }
+
+        datasets.push(energyDataset);
       }
     });
 
     return {
-      type: 'line',
+      type: chartType === 'stacked_bar' ? 'bar' : 'line',
       data: { datasets },
       options: {
         responsive,
@@ -296,8 +350,9 @@ export class ChartConfigBuilder {
         },
         scales: {
           x: {
-            type: 'time',
+            type: chartType === 'stacked_bar' ? 'time' : 'time',
             display: !hideXAxis,
+            stacked: chartType === 'stacked_bar',
             time: {
               unit: 'hour',
               displayFormats: {
@@ -338,6 +393,7 @@ export class ChartConfigBuilder {
             type: 'linear',
             display: !hideYAxis,
             position: 'left',
+            stacked: chartType === 'stacked_bar',
             title: {
               display: !hideYAxis,
               text: 'Power (W)',
@@ -356,6 +412,7 @@ export class ChartConfigBuilder {
             type: 'linear',
             display: !hideYAxis,
             position: 'right',
+            stacked: chartType === 'stacked_bar',
             title: {
               display: !hideYAxis,
               text: 'Energy (kWh)',
@@ -375,4 +432,3 @@ export class ChartConfigBuilder {
     };
   }
 }
-

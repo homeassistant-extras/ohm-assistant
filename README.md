@@ -65,6 +65,13 @@ A modern, professional Home Assistant custom card for displaying electricity usa
 ### 📈 Advanced Charting
 
 - **Interactive Charts** - Built with Chart.js for smooth, responsive data visualization
+- **Chart Type Selection** - Choose between Line charts (detailed) or Stacked Bar charts (overview)
+  - Line charts: 5-minute data aggregation for smooth, detailed visualization
+  - Bar charts: Hourly aggregation for larger, easier-to-read bars with stacking support
+- **Untracked Power Visualization** - See power consumption not tracked by individual entities (bar charts only)
+  - Automatically calculates: `untracked = total_power - sum(tracked_power_entities)`
+  - Displays as a gray bar stacked on top of tracked power
+  - Perfect for identifying phantom loads and unmetered devices
 - **Multiple Line Types** - Choose from normal, gradient, gradient-no-fill, or no-fill line styles
 - **Customizable Legends** - Configure legend display (entities, compact, or none)
 - **Axis Control** - Show/hide X and Y axes independently
@@ -78,6 +85,9 @@ Gradient No Fill
 
 ![Gradient](assets/gradient.png)
 Gradient
+
+![Bar](assets/bar.png)
+Bar Chart w/ Untracked Consumption
 
 ### ⚙️ Flexible Configuration
 
@@ -214,11 +224,13 @@ Entities without custom colors will use the default color scheme based on their 
 
 ### Chart Configuration
 
-| Name         | Type   | Default  | Description                                             |
-| ------------ | ------ | -------- | ------------------------------------------------------- |
-| legend_style | string | entities | Legend display style: entities, compact, none           |
-| axis_style   | string | all      | Axis display: all, x_only, y_only, none                 |
-| line_type    | string | normal   | Line style: normal, gradient, gradient_no_fill, no_fill |
+| Name               | Type   | Default  | Description                                                          |
+| ------------------ | ------ | -------- | -------------------------------------------------------------------- |
+| chart_type         | string | line     | Chart type: line (detailed) or stacked_bar (overview)                |
+| total_power_entity | string | _none_   | Total power entity ID for untracked power visualization (bar charts) |
+| legend_style       | string | entities | Legend display style: entities, compact, none                        |
+| axis_style         | string | all      | Axis display: all, x_only, y_only, none                              |
+| line_type          | string | normal   | Line style: normal, gradient, gradient_no_fill, no_fill              |
 
 ### Feature Flags
 
@@ -299,10 +311,23 @@ entities:
 type: custom:area-energy-card
 area: living_room
 chart:
+  chart_type: stacked_bar # Use bar charts for better overview
   legend_style: compact
   axis_style: y_only
   line_type: gradient
 ```
+
+### With Untracked Power Visualization
+
+```yaml
+type: custom:area-energy-card
+area: living_room
+chart:
+  chart_type: stacked_bar # Required for untracked power
+  total_power_entity: sensor.total_power # Your total power entity
+```
+
+**Note**: Untracked power visualization only works with `chart_type: stacked_bar`. The card will automatically calculate and display the difference between total power and the sum of tracked power entities.
 
 ### With Feature Flags
 
@@ -325,6 +350,8 @@ entities:
   - entity_id: sensor.living_room_energy
     color: '#10b981' # Custom green color
 chart:
+  chart_type: stacked_bar # Use bar charts
+  total_power_entity: sensor.total_power # Track untracked power
   legend_style: entities
   axis_style: all
   line_type: gradient_no_fill
@@ -350,6 +377,8 @@ _Coming soon - screenshots of the card in action will be added here._
 - [x] **`TypeScript support`**: Full type safety and modern development
 - [x] **`UI improvements`**: Tweaks and changes for the UI - thanks @LamarcLS
 - [x] **`Custom entity colors`**: Choose colors for individual chart items - thanks @LamarcLS
+- [x] **`Chart type selection`**: Line and Stacked Bar chart options - thanks @LamarcLS
+- [x] **`Untracked power visualization`**: Visualize power consumption not tracked by individual entities - thanks @LamarcLS
 
 ## Contributing
 

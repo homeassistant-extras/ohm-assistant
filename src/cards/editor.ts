@@ -29,7 +29,21 @@ export class AreaEnergyEditor extends LitElement {
       return nothing;
     }
 
-    const schema: HaFormSchema[] = [
+    const schema = this._getSchema();
+
+    return html`
+      <ha-form
+        .hass=${this._hass}
+        .data=${this._config}
+        .schema=${schema}
+        .computeLabel=${this._computeLabel}
+        @value-changed=${this._valueChanged}
+      ></ha-form>
+    `;
+  }
+
+  private _getSchema(): HaFormSchema[] {
+    return [
       {
         name: 'area',
         label: 'Area',
@@ -70,6 +84,18 @@ export class AreaEnergyEditor extends LitElement {
               },
             },
           },
+          {
+            name: 'chart.total_power_entity',
+            label: 'Total Power Entity (for untracked power)',
+            required: false,
+            selector: {
+              entity: {
+                filter: {
+                  device_class: 'power',
+                },
+              },
+            },
+          },
         ],
       },
       {
@@ -78,6 +104,26 @@ export class AreaEnergyEditor extends LitElement {
         type: 'expandable' as const,
         icon: 'mdi:chart-line',
         schema: [
+          {
+            name: 'chart_type',
+            label: 'Chart Type',
+            required: false,
+            selector: {
+              select: {
+                mode: 'dropdown' as const,
+                options: [
+                  {
+                    label: 'Line (Default)',
+                    value: 'line',
+                  },
+                  {
+                    label: 'Stacked Bar',
+                    value: 'stacked_bar',
+                  },
+                ],
+              },
+            },
+          },
           {
             name: 'line_type',
             label: 'Line Type',
@@ -191,16 +237,6 @@ export class AreaEnergyEditor extends LitElement {
         ],
       },
     ];
-
-    return html`
-      <ha-form
-        .hass=${this._hass}
-        .data=${this._config}
-        .schema=${schema}
-        .computeLabel=${this._computeLabel}
-        @value-changed=${this._valueChanged}
-      ></ha-form>
-    `;
   }
 
   private _computeLabel = (schema: HaFormSchema): string => {
