@@ -927,7 +927,7 @@ describe('ChartConfigBuilder', () => {
       });
     });
 
-    it('should not create untracked power dataset for line charts', () => {
+    it('should not create untracked power dataset for regular line charts', () => {
       const builder = new ChartConfigBuilder();
       const dataWithUntracked = {
         powerData: [
@@ -956,7 +956,7 @@ describe('ChartConfigBuilder', () => {
       expect(untrackedDataset).to.be.undefined;
     });
 
-    it('should create untracked power dataset for bar charts', () => {
+    it('should create untracked power dataset for stacked bar charts', () => {
       const builder = new ChartConfigBuilder();
       const dataWithUntracked = {
         powerData: [
@@ -998,6 +998,47 @@ describe('ChartConfigBuilder', () => {
         'borderColor',
         'rgba(128, 128, 128, 0.7)',
       );
+    });
+
+    it('should create untracked power dataset for stacked_line charts', () => {
+      const builder = new ChartConfigBuilder();
+      const dataWithUntracked = {
+        powerData: [
+          {
+            entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
+            data: [{ timestamp: new Date(), value: 100 }],
+          },
+        ],
+        energyData: [],
+        untrackedPowerData: {
+          entityId: 'sensor.total_power',
+          friendlyName: 'Total Power (Untracked)',
+          data: [{ timestamp: new Date(), value: 10 }],
+        },
+      };
+
+      const config = builder.build(dataWithUntracked, {
+        chartType: 'stacked_line',
+      });
+
+      const untrackedDataset = config.data.datasets.find(
+        (d: any) => d.label && d.label.includes('Untracked'),
+      );
+
+      expect(untrackedDataset).to.exist;
+      expect(untrackedDataset).to.have.property(
+        'label',
+        'Total Power (Untracked)',
+      );
+      expect(untrackedDataset).to.have.property('stack', 'power');
+      expect(untrackedDataset).to.have.property('yAxisID', 'y');
+      // Verify stacked_line specific properties
+      expect(untrackedDataset).to.have.property('fill', true);
+      expect(untrackedDataset).to.have.property('borderWidth', 2);
+      expect(untrackedDataset).to.have.property('pointRadius', 0);
+      expect(untrackedDataset).to.have.property('pointHoverRadius', 0);
+      expect(untrackedDataset).to.have.property('tension', 0.4);
     });
 
     it('should not create untracked power dataset when data is empty', () => {
@@ -1137,6 +1178,109 @@ describe('ChartConfigBuilder', () => {
       expect(untrackedDataset?.data[1]).to.deep.equal({
         x: new Date('2024-01-01T11:00:00Z').getTime(),
         y: 15,
+      });
+    });
+  });
+
+  describe('stacked line chart configuration', () => {
+    it('should use line chart type when chartType is stacked_line', () => {
+      const builder = new ChartConfigBuilder();
+      const config = builder.build(mockData, {
+        chartType: 'stacked_line',
+      });
+
+      expect(config).to.have.property('type', 'line');
+    });
+
+    it('should apply stacked line chart properties when chartType is stacked_line', () => {
+      const builder = new ChartConfigBuilder();
+      const stackedLineConfig = builder.build(mockData, {
+        chartType: 'stacked_line',
+      });
+      const lineConfig = builder.build(mockData, {
+        chartType: 'line',
+      });
+
+      const stackedLinePowerDataset = stackedLineConfig.data.datasets.find(
+        (d: any) => d.yAxisID === 'y',
+      );
+      const linePowerDataset = lineConfig.data.datasets.find(
+        (d: any) => d.yAxisID === 'y',
+      );
+
+      // Stacked line chart should have stack property and no points
+      expect(stackedLinePowerDataset).to.have.property('stack', 'power');
+      expect(stackedLinePowerDataset).to.have.property('borderWidth', 2);
+      expect(stackedLinePowerDataset).to.have.property('tension', 0.4);
+      expect(stackedLinePowerDataset).to.have.property('pointRadius', 0);
+      expect(stackedLinePowerDataset).to.have.property('pointHoverRadius', 0);
+
+      // Regular line chart should not have stack property but can show hover points
+      expect(linePowerDataset).to.not.have.property('stack');
+      expect(linePowerDataset).to.have.property('borderWidth', 2);
+      expect(linePowerDataset).to.have.property('tension', 0.4);
+      expect(linePowerDataset).to.have.property('pointRadius', 0);
+      expect(linePowerDataset).to.have.property('pointHoverRadius', 4);
+    });
+
+    it('should enable stacking on scales when chartType is stacked_line', () => {
+      const builder = new ChartConfigBuilder();
+      const config = builder.build(mockData, {
+        chartType: 'stacked_line',
+      });
+
+      expect(config.options.scales?.x).to.have.property('stacked', true);
+      expect(config.options.scales?.y).to.have.property('stacked', true);
+      expect(config.options.scales?.y1).to.have.property('stacked', true);
+    });
+
+    it('should handle multiple entities with stacking in stacked_line charts', () => {
+      const builder = new ChartConfigBuilder();
+      const multiEntityData = {
+        powerData: [
+          {
+            entityId: 'sensor.power1',
+            friendlyName: 'Power 1',
+            data: [{ timestamp: new Date(), value: 100 }],
+          },
+          {
+            entityId: 'sensor.power2',
+            friendlyName: 'Power 2',
+            data: [{ timestamp: new Date(), value: 200 }],
+          },
+        ],
+        energyData: [
+          {
+            entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
+            data: [{ timestamp: new Date(), value: 1.5 }],
+          },
+        ],
+      };
+
+      const config = builder.build(multiEntityData, {
+        chartType: 'stacked_line',
+      });
+
+      const powerDatasets = config.data.datasets.filter(
+        (d: any) => d.yAxisID === 'y',
+      );
+      const energyDatasets = config.data.datasets.filter(
+        (d: any) => d.yAxisID === 'y1',
+      );
+
+      // All power datasets should have the same stack value
+      expect(powerDatasets).to.have.length(2);
+      powerDatasets.forEach((dataset: any) => {
+        expect(dataset).to.have.property('stack', 'power');
+        expect(dataset).to.have.property('tension', 0.4);
+      });
+
+      // All energy datasets should have the same stack value
+      expect(energyDatasets).to.have.length(1);
+      energyDatasets.forEach((dataset: any) => {
+        expect(dataset).to.have.property('stack', 'energy');
+        expect(dataset).to.have.property('tension', 0);
       });
     });
   });

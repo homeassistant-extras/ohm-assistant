@@ -46,7 +46,7 @@ export type LegendStyle = 'entities' | 'compact' | 'none';
 export type AxisStyle = 'all' | 'x_only' | 'y_only' | 'none';
 
 /** Chart type options */
-export type ChartType = 'line' | 'stacked_bar';
+export type ChartType = 'line' | 'stacked_bar' | 'stacked_line';
 
 /** Line type options */
 export type LineType = 'normal' | 'gradient' | 'gradient_no_fill' | 'no_fill';

@@ -20,7 +20,7 @@ export interface ChartOptions {
   showLegend?: boolean;
   hideXAxis?: boolean;
   hideYAxis?: boolean;
-  chartType?: 'line' | 'stacked_bar';
+  chartType?: 'line' | 'stacked_bar' | 'stacked_line';
   lineType?: 'normal' | 'gradient' | 'gradient_no_fill' | 'no_fill';
   entityColorMap?: Record<string, string>;
 }
@@ -214,17 +214,26 @@ export class ChartConfigBuilder {
             lineType !== 'gradient_no_fill' && lineType !== 'no_fill';
           powerDataset.tension = powerTension;
           powerDataset.stepped = powerStepped;
-          powerDataset.pointRadius = 0;
-          powerDataset.pointHoverRadius = 4;
+
+          // Add stack property for stacked_line chart type
+          if (chartType === 'stacked_line') {
+            powerDataset.stack = 'power';
+            // Ensure no points are shown for stacked_line
+            powerDataset.pointRadius = 0;
+            powerDataset.pointHoverRadius = 0;
+          } else {
+            powerDataset.pointRadius = 0;
+            powerDataset.pointHoverRadius = 4;
+          }
         }
 
         datasets.push(powerDataset);
       }
     });
 
-    // Untracked power data - only for bar charts, stacks on top of tracked power
+    // Untracked power data - only for stacked charts, stacks on top of tracked power
     if (
-      chartType === 'stacked_bar' &&
+      (chartType === 'stacked_bar' || chartType === 'stacked_line') &&
       untrackedPowerData &&
       untrackedPowerData.data.length > 0
     ) {
@@ -239,12 +248,26 @@ export class ChartConfigBuilder {
       const untrackedDataset: any = {
         label: untrackedPowerData.friendlyName,
         data: untrackedChartData,
-        backgroundColor: untrackedColor,
-        borderColor: untrackedColor,
-        borderWidth: 1,
         stack: 'power', // Same stack as power entities so it stacks on top
         yAxisID: 'y',
       };
+
+      if (chartType === 'stacked_bar') {
+        // Bar chart configuration
+        untrackedDataset.backgroundColor = untrackedColor;
+        untrackedDataset.borderColor = untrackedColor;
+        untrackedDataset.borderWidth = 1;
+      } else {
+        // Stacked line chart configuration - match other line datasets
+        untrackedDataset.borderColor = untrackedColor;
+        untrackedDataset.backgroundColor = untrackedColor.replace('0.7', '0.1'); // Fill with lighter opacity
+        untrackedDataset.borderWidth = 2;
+        untrackedDataset.fill = true; // Enable fill so it's filled like other datasets
+        untrackedDataset.tension = powerTension; // Same tension as other power datasets
+        untrackedDataset.stepped = powerStepped;
+        untrackedDataset.pointRadius = 0; // No points
+        untrackedDataset.pointHoverRadius = 0; // No hover points
+      }
 
       datasets.push(untrackedDataset);
     }
@@ -309,8 +332,17 @@ export class ChartConfigBuilder {
             lineType !== 'gradient_no_fill' && lineType !== 'no_fill';
           energyDataset.tension = energyTension;
           energyDataset.stepped = energyStepped;
-          energyDataset.pointRadius = 0;
-          energyDataset.pointHoverRadius = 4;
+
+          // Add stack property for stacked_line chart type
+          if (chartType === 'stacked_line') {
+            energyDataset.stack = 'energy';
+            // Ensure no points are shown for stacked_line
+            energyDataset.pointRadius = 0;
+            energyDataset.pointHoverRadius = 0;
+          } else {
+            energyDataset.pointRadius = 0;
+            energyDataset.pointHoverRadius = 4;
+          }
         }
 
         datasets.push(energyDataset);
@@ -352,7 +384,8 @@ export class ChartConfigBuilder {
           x: {
             type: chartType === 'stacked_bar' ? 'time' : 'time',
             display: !hideXAxis,
-            stacked: chartType === 'stacked_bar',
+            stacked:
+              chartType === 'stacked_bar' || chartType === 'stacked_line',
             time: {
               unit: 'hour',
               displayFormats: {
@@ -393,7 +426,8 @@ export class ChartConfigBuilder {
             type: 'linear',
             display: !hideYAxis,
             position: 'left',
-            stacked: chartType === 'stacked_bar',
+            stacked:
+              chartType === 'stacked_bar' || chartType === 'stacked_line',
             title: {
               display: !hideYAxis,
               text: 'Power (W)',
@@ -412,7 +446,8 @@ export class ChartConfigBuilder {
             type: 'linear',
             display: !hideYAxis,
             position: 'right',
-            stacked: chartType === 'stacked_bar',
+            stacked:
+              chartType === 'stacked_bar' || chartType === 'stacked_line',
             title: {
               display: !hideYAxis,
               text: 'Energy (kWh)',

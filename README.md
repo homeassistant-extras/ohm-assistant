@@ -65,8 +65,9 @@ A modern, professional Home Assistant custom card for displaying electricity usa
 ### 📈 Advanced Charting
 
 - **Interactive Charts** - Built with Chart.js for smooth, responsive data visualization
-- **Chart Type Selection** - Choose between Line charts (detailed) or Stacked Bar charts (overview)
+- **Chart Type Selection** - Choose between Line charts (detailed), Stacked Bar charts (overview), or Stacked Line charts
   - Line charts: 5-minute data aggregation for smooth, detailed visualization
+  - Stacked Line charts: Line charts with stacking enabled for cumulative visualization
   - Bar charts: Hourly aggregation for larger, easier-to-read bars with stacking support
 - **Untracked Power Visualization** - See power consumption not tracked by individual entities (bar charts only)
   - Automatically calculates: `untracked = total_power - sum(tracked_power_entities)`
@@ -87,7 +88,10 @@ Gradient No Fill
 Gradient
 
 ![Bar](assets/bar.png)
-Bar Chart w/ Untracked Consumption
+Stacked Bar Chart w/ Untracked Consumption
+
+![Line](assets/stacked-line.png)
+Stacked Line Chart w/ Untracked Consumption
 
 ### ⚙️ Flexible Configuration
 
@@ -224,13 +228,13 @@ Entities without custom colors will use the default color scheme based on their 
 
 ### Chart Configuration
 
-| Name               | Type   | Default  | Description                                                          |
-| ------------------ | ------ | -------- | -------------------------------------------------------------------- |
-| chart_type         | string | line     | Chart type: line (detailed) or stacked_bar (overview)                |
-| total_power_entity | string | _none_   | Total power entity ID for untracked power visualization (bar charts) |
-| legend_style       | string | entities | Legend display style: entities, compact, none                        |
-| axis_style         | string | all      | Axis display: all, x_only, y_only, none                              |
-| line_type          | string | normal   | Line style: normal, gradient, gradient_no_fill, no_fill              |
+| Name               | Type   | Default  | Description                                                                          |
+| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------ |
+| chart_type         | string | line     | Chart type: line (detailed), stacked_bar (overview), or stacked_line (stacked lines) |
+| total_power_entity | string | _none_   | Total power entity ID for untracked power visualization (stacked charts only)        |
+| legend_style       | string | entities | Legend display style: entities, compact, none                                        |
+| axis_style         | string | all      | Axis display: all, x_only, y_only, none                                              |
+| line_type          | string | normal   | Line style: normal, gradient, gradient_no_fill, no_fill                              |
 
 ### Feature Flags
 
@@ -327,7 +331,7 @@ chart:
   total_power_entity: sensor.total_power # Your total power entity
 ```
 
-**Note**: Untracked power visualization only works with `chart_type: stacked_bar`. The card will automatically calculate and display the difference between total power and the sum of tracked power entities.
+**Note**: Untracked power visualization only works with `chart_type: stacked_bar` or `chart_type: stacked_line`. The card will automatically calculate and display the difference between total power and the sum of tracked power entities.
 
 ### With Feature Flags
 

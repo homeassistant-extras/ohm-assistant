@@ -84,8 +84,16 @@ export class AreaEnergyEditor extends LitElement {
               },
             },
           },
+        ],
+      },
+      {
+        name: 'chart',
+        label: 'Chart',
+        type: 'expandable' as const,
+        icon: 'mdi:chart-line',
+        schema: [
           {
-            name: 'chart.total_power_entity',
+            name: 'total_power_entity',
             label: 'Total Power Entity (for untracked power)',
             required: false,
             selector: {
@@ -96,14 +104,6 @@ export class AreaEnergyEditor extends LitElement {
               },
             },
           },
-        ],
-      },
-      {
-        name: 'chart',
-        label: 'Chart',
-        type: 'expandable' as const,
-        icon: 'mdi:chart-line',
-        schema: [
           {
             name: 'chart_type',
             label: 'Chart Type',
@@ -119,6 +119,10 @@ export class AreaEnergyEditor extends LitElement {
                   {
                     label: 'Stacked Bar',
                     value: 'stacked_bar',
+                  },
+                  {
+                    label: 'Stacked Line',
+                    value: 'stacked_line',
                   },
                 ],
               },

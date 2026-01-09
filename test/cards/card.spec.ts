@@ -724,6 +724,56 @@ describe('AreaEnergy', () => {
       );
     });
 
+    it('should use hourly period for stacked line charts', async () => {
+      const stackedLineChartConfig = {
+        ...mockConfig,
+        chart: {
+          chart_type: 'stacked_line' as const,
+        },
+      };
+
+      const card = new AreaEnergy();
+      card.setConfig(stackedLineChartConfig);
+      card.hass = mockHass;
+
+      // Mock canvas element
+      const mockCanvas = {
+        width: 400,
+        height: 300,
+        getContext: () => ({
+          createLinearGradient: () => ({
+            addColorStop: () => {},
+          }),
+        }),
+      } as any;
+
+      // Mock shadowRoot
+      Object.defineProperty(card, 'shadowRoot', {
+        value: {
+          querySelector: () => mockCanvas,
+        },
+        writable: true,
+      });
+
+      // Call firstUpdated
+      card.firstUpdated();
+
+      // Wait for the async _initChart to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify that fetchPowerEnergyData was called with 'hour' period for stacked_line chart
+      expect(fetchPowerEnergyDataStub.calledOnce).to.be.true;
+      expect(
+        fetchPowerEnergyDataStub.calledWith(
+          mockHass,
+          mockPowerEntities,
+          mockEnergyEntities,
+          24,
+          'hour', // Stacked line charts use hourly aggregation
+        ),
+      ).to.be.true;
+    });
+
     it('should use 5minute period for line charts', async () => {
       const lineChartConfig = {
         ...mockConfig,
