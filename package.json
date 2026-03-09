@@ -46,7 +46,7 @@
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^25.2.3",
+    "@types/node": "^25.3.5",
     "@types/sinon": "^21.0.0",
     "chai": "^6.2.2",
     "jsdom": "^28.1.0",
@@ -55,7 +55,7 @@
     "parcel": "^2.16.4",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
-    "sinon": "^21.0.1",
+    "sinon": "^21.0.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
