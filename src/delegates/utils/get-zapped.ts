@@ -1,9 +1,9 @@
 import { hasFeature } from '@/config/feature';
 import { EntityState } from '@/types/entity';
+import { getEntityIds } from '@common/helpers';
 import { stateActive } from '@hass/common/entity/state_active';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
-import { getEntityIds } from '@common/helpers';
 import { getDevice } from '../retrievers/device';
 import { getState } from '../retrievers/state';
 
@@ -41,7 +41,7 @@ export const getZapped = (
     // If it's a config entity, always include it since the user has explicitly included it
     if (!isConfigEntity && !isInArea) return;
 
-    const state = getState(hass.states, entity.entity_id);
+    const state = getState(hass.states, entity.entity_id, config);
     if (!state) return;
 
     // Count active lights and switches in the area

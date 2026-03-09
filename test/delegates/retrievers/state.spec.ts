@@ -65,10 +65,17 @@ describe('state.ts', () => {
       expect(state?.state).to.equal('on');
     });
 
-    it('should create fake state when requested', () => {
-      const state = getState(mockHass.states, 'light.fake', true);
+    it('should override friendly_name with custom name from config when provided', () => {
+      const config = {
+        area: 'living_room',
+        entities: [
+          { entity_id: 'light.test', name: 'Custom Light Name' },
+        ],
+      } as any;
+
+      const state = getState(mockHass.states, 'light.test', config);
       expect(state).to.exist;
-      expect(state?.entity_id).to.equal('light.fake');
+      expect(state?.attributes.friendly_name).to.equal('Custom Light Name');
     });
 
     it('should return state with domain functions', () => {

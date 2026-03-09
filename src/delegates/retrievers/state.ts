@@ -1,35 +1,46 @@
 import { EntityState } from '@/types/entity';
 import { computeDomain } from '@hass/common/entity/compute_domain';
 import memoizeOne from 'memoize-one';
+import type { Config } from '@type/config';
 
 /**
  * Retrieves the state of an entity
  *
- * @param {Record<string, any>} states - The states registry
- * @param {string} [entityId] - The ID of the entity
- * @param {boolean} [fakeState=false] - Whether to create a fake state if none exists
- * @returns {EntityState | undefined} The entity's state or undefined
+ * @param states - The states registry
+ * @param entityId - The ID of the entity
+ * @param config - Optional config for custom entity names
+ * @returns The entity's state or undefined
  */
 export const getState = memoizeOne(
   (
     states: Record<string, any>,
-    entityId?: string,
-    fakeState: boolean = false,
+    entityId: string,
+    config?: Config,
   ): EntityState | undefined => {
     if (!entityId) return undefined;
 
-    const state =
-      states[entityId] ??
-      (fakeState
-        ? { entity_id: entityId, state: 'off', attributes: {} }
-        : undefined);
-
+    const state = states[entityId];
     if (!state) return undefined;
 
     const domain = computeDomain(state.entity_id);
+    let attributes = state.attributes;
+
+    // Apply custom name from config when entity has one defined
+    if (config?.entities) {
+      const entityConfig = config.entities.find(
+        (e) =>
+          typeof e === 'object' &&
+          e.entity_id === entityId &&
+          e.name,
+      );
+      if (entityConfig && typeof entityConfig === 'object') {
+        attributes = { ...attributes, friendly_name: entityConfig.name };
+      }
+    }
+
     return {
       state: state.state,
-      attributes: state.attributes,
+      attributes,
       entity_id: state.entity_id,
       domain,
     };

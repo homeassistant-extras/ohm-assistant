@@ -280,6 +280,7 @@ describe('getZapped', () => {
     it('should include entities by device area_id when entity area_id is null', () => {
       hasFeatureStub.returns(false);
 
+      // @ts-ignore
       const entity = createMockEntity('sensor.device_power', null, 'device1');
       const state = createStateEntity('sensor', 'device_power', 'on', {
         device_class: 'power',
@@ -746,6 +747,7 @@ describe('getZapped', () => {
       const entity = createMockEntity(
         'sensor.living_room_power',
         'living_room',
+        // @ts-ignore
         null,
       );
 

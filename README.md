@@ -194,7 +194,7 @@ entities:
   - sensor.living_room_energy
 ```
 
-**Object Format** (with custom colors):
+**Object Format** (with custom colors and names):
 
 ```yaml
 entities:
@@ -202,12 +202,12 @@ entities:
     color: '#ff0000' # Hex color
   - entity_id: sensor.living_room_energy
     color: 'rgba(0, 255, 0, 0.8)' # RGBA color with transparency
-  - entity_id: sensor.kitchen_power
-    color: 'blue' # Named color
+  - entity_id: sensor.waschmaschinensteckdose_leistung
+    name: Waschmaschine # Custom display name in charts/legends
+  - entity_id: sensor.kuhlschrank_garage_leistung
+    name: Kühlschrank Garage
   - entity_id: sensor.bedroom_power
     color: 'primary' # Home Assistant theme color
-  - entity_id: sensor.bedroom_energy
-    color: 'accent' # Home Assistant theme color
 ```
 
 **Mixed Format** (combine both):
@@ -223,6 +223,7 @@ When using the object format:
 
 - `entity_id` (required): The entity ID string
 - `color` (optional): Color value in any CSS format (hex, rgba, named colors, etc.) or Home Assistant theme colors (primary, accent, red, blue, green, etc.)
+- `name` (optional): Custom display name for the entity in charts and legends (e.g. "Waschmaschine" instead of the entity's friendly_name)
 
 Entities without custom colors will use the default color scheme based on their type (power/energy) and position.
 
@@ -294,7 +295,7 @@ entities:
   - sensor.living_room_energy
 ```
 
-### With Custom Entity Colors
+### With Custom Entity Colors and Names
 
 ```yaml
 type: custom:area-energy-card
@@ -305,6 +306,7 @@ entities:
     color: '#ff6b6b' # Custom red color
   - entity_id: sensor.kitchen_power
     color: '#4ecdc4' # Custom teal color
+    name: Kühlschrank Garage # Custom display name
   - entity_id: sensor.bedroom_power
     color: 'primary' # Home Assistant theme color
 ```
@@ -380,7 +382,7 @@ _Coming soon - screenshots of the card in action will be added here._
 - [x] **`Performance optimization`**: Efficient rendering with memoization
 - [x] **`TypeScript support`**: Full type safety and modern development
 - [x] **`UI improvements`**: Tweaks and changes for the UI - thanks @LamarcLS
-- [x] **`Custom entity colors`**: Choose colors for individual chart items - thanks @LamarcLS
+- [x] **`Custom entity colors and name`**: Choose colors/name for individual chart items - thanks @LamarcLS, @frankfrommelt
 - [x] **`Chart type selection`**: Line and Stacked Bar chart options - thanks @LamarcLS
 - [x] **`Untracked power visualization`**: Visualize power consumption not tracked by individual entities - thanks @LamarcLS
 

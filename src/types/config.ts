@@ -1,7 +1,13 @@
-/** Entity configuration with optional color */
+/** Entity configuration with optional color and name */
 export interface EntityConfig {
+  /** Entity ID */
   entity_id: string;
-  color: string;
+
+  /** Color of the entity */
+  color?: string;
+
+  /** Name of the entity */
+  name?: string;
 }
 
 export interface Config {

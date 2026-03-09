@@ -209,7 +209,10 @@ export class AreaEnergy extends LitElement {
       const chartType = this._config.chart?.chart_type || 'line';
       // Use hourly aggregation for bar charts and stacked_line charts to reduce data points
       // Use 5-minute aggregation for regular line charts for smoother lines
-      const period = chartType === 'stacked_bar' || chartType === 'stacked_line' ? 'hour' : '5minute';
+      const period =
+        chartType === 'stacked_bar' || chartType === 'stacked_line'
+          ? 'hour'
+          : '5minute';
 
       // Fetch power and energy data (include total power entity for untracked power calculation)
       const totalPowerEntityId = this._config.chart?.total_power_entity;
