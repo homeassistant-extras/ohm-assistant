@@ -1,12 +1,5 @@
 import { JSDOM } from 'jsdom';
 
-declare global {
-  interface Window {
-    customCards: Array<Object>;
-    matchMedia: (query: string) => MediaQueryList;
-  }
-}
-
 // Mock chartjs-adapter-date-fns to prevent date-fns dependency issues in tests
 const mockAdapter = {
   _date: () => new Date(),
@@ -58,7 +51,7 @@ global.window.matchMedia = (): MediaQueryList => {
 };
 
 // Mock getComputedStyle to support CSS variable resolution in tests
-global.getComputedStyle = (element: Element): CSSStyleDeclaration => {
+globalThis.getComputedStyle = (element: Element): CSSStyleDeclaration => {
   const mockStyle = {
     getPropertyValue: (property: string): string => {
       // Check element's inline styles first

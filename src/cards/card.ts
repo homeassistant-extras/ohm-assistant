@@ -21,7 +21,7 @@ import {
 import { renderError } from '../html/no-good';
 import { renderLegend } from '../html/watching-waiting';
 import { styles } from '../styles';
-import { EntityState } from '../types/entity';
+import type { EntityState } from '../types/entity';
 const equal = require('fast-deep-equal');
 
 /**

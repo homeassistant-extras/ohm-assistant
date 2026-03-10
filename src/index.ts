@@ -1,22 +1,34 @@
 import { version } from '../package.json';
 import { AreaEnergy } from './cards/card';
+import { OhmAssistantEntitiesRowEditor } from './cards/components/editor/entities-row-editor';
+import { OhmAssistantEntityDetailEditor } from './cards/components/editor/entity-detail-editor';
+import { OhmAssistantSubElementEditor } from './cards/components/editor/sub-element-editor';
 import { AreaEnergyEditor } from './cards/editor';
 
 // Register custom elements
 customElements.define('area-energy-card', AreaEnergy);
 customElements.define('area-energy-card-editor', AreaEnergyEditor);
+customElements.define(
+  'ohm-assistant-entities-row-editor',
+  OhmAssistantEntitiesRowEditor,
+);
+customElements.define(
+  'ohm-assistant-entity-detail-editor',
+  OhmAssistantEntityDetailEditor,
+);
+customElements.define(
+  'ohm-assistant-sub-element-editor',
+  OhmAssistantSubElementEditor,
+);
 
 declare global {
-  interface Window {
-    customCards: Array<Object>;
-    matchMedia: (query: string) => MediaQueryList;
-  }
+  var customCards: Array<object> | undefined;
 }
 
 // Ensure the customCards array exists on the window object
-window.customCards = window.customCards || [];
+globalThis.customCards = globalThis.customCards || [];
 
-window.customCards.push({
+globalThis.customCards.push({
   // Unique identifier for the card type
   type: 'area-energy-card',
 

@@ -1,4 +1,4 @@
-import { AreaEnergyEditor } from '@/cards/editor';
+import { AreaEnergyEditor } from '@cards/editor';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
 import { expect } from 'chai';
@@ -12,7 +12,9 @@ describe('editor.ts', () => {
 
   beforeEach(async () => {
     // Create mock HomeAssistant instance
-    hass = {} as HomeAssistant;
+    hass = {
+      localize: (key: string) => key,
+    } as HomeAssistant;
 
     // Register the custom element to avoid constructor issues
     if (!customElements.get('area-energy-card-editor')) {
@@ -74,10 +76,12 @@ describe('editor.ts', () => {
       const result = card.render() as TemplateResult;
       expect(result).to.not.equal(nothing);
 
-      // Check that the template contains ha-form
+      // Check that the template contains ha-form and entities-row-editor
       const template = result as any;
       expect(template.strings).to.be.an('array');
-      expect(template.strings.join('')).to.include('ha-form');
+      const templateString = template.strings.join('');
+      expect(templateString).to.include('ha-form');
+      expect(templateString).to.include('ohm-assistant-entities-row-editor');
     });
 
     it('should pass correct props to ha-form', async () => {
@@ -89,11 +93,12 @@ describe('editor.ts', () => {
       const result = card.render() as TemplateResult;
       expect(result).to.not.equal(nothing);
 
-      // Check that the template contains the expected schema structure
+      // Check that the template contains the expected structure
       const template = result as any;
       expect(template.strings).to.be.an('array');
       const templateString = template.strings.join('');
       expect(templateString).to.include('ha-form');
+      expect(templateString).to.include('ohm-assistant-entities-row-editor');
 
       // The schema is defined in the editor, so we just verify the template renders
       expect(template.values).to.be.an('array');
@@ -125,28 +130,6 @@ describe('editor.ts', () => {
               name: 'name',
               label: 'Card Name',
               selector: { text: {} },
-            },
-          ],
-        },
-        {
-          name: 'entities',
-          label: 'Entities',
-          type: 'expandable' as const,
-          flatten: true,
-          icon: 'mdi:devices',
-          schema: [
-            {
-              name: 'entities',
-              label: 'Entities',
-              required: true,
-              selector: {
-                entity: {
-                  multiple: true,
-                  filter: {
-                    device_class: ['power', 'energy'],
-                  },
-                },
-              },
             },
           ],
         },
@@ -354,6 +337,31 @@ describe('editor.ts', () => {
       expect(dispatchStub.firstCall.args[0].type).to.equal('config-changed');
       expect(dispatchStub.firstCall.args[0].detail.config).to.deep.equal({
         area: 'living_room',
+      });
+    });
+
+    it('should preserve entities when form value changes', () => {
+      const testConfig: Config = {
+        area: 'living_room',
+        entities: ['sensor.power_1'],
+      };
+      card.setConfig(testConfig);
+
+      // Simulate value-changed event from form (form doesn't include entities)
+      const detail = {
+        value: {
+          area: 'kitchen',
+        },
+      };
+
+      const event = new CustomEvent('value-changed', { detail });
+      card['_valueChanged'](event);
+
+      // Verify entities are preserved from config
+      expect(dispatchStub.calledOnce).to.be.true;
+      expect(dispatchStub.firstCall.args[0].detail.config).to.deep.equal({
+        area: 'kitchen',
+        entities: ['sensor.power_1'],
       });
     });
 

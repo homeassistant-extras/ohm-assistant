@@ -1,5 +1,5 @@
 import { getDevice } from '@/delegates/retrievers/device';
-import { EntityState } from '@/types/entity';
+import type { EntityState } from '@/types/entity';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';
 
@@ -235,6 +235,23 @@ export const getAreaEntities = (
   });
 
   return entities.map((e) => e.entity_id);
+};
+
+/**
+ * Get power and energy entity IDs from an area (for entity picker)
+ * @param hass Home Assistant instance
+ * @param areaId The area ID to filter entities by
+ * @returns Array of power/energy entity IDs in the area
+ */
+export const getAreaPowerEnergyEntities = (
+  hass: HomeAssistant,
+  areaId: string,
+): string[] => {
+  const areaEntityIds = getAreaEntities(hass, areaId);
+  return areaEntityIds.filter((entityId) => {
+    const deviceClass = hass.states?.[entityId]?.attributes?.device_class;
+    return deviceClass === 'power' || deviceClass === 'energy';
+  });
 };
 
 /**

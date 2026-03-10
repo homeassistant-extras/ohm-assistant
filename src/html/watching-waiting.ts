@@ -1,4 +1,4 @@
-import { EntityState } from '@/types/entity';
+import type { EntityState } from '@/types/entity';
 import { getEntityColor } from '@common/colors';
 import type { HomeAssistant } from '@hass/types';
 import type { Config } from '@type/config';

@@ -1,4 +1,4 @@
-import { EntityState } from '@/types/entity';
+import type { EntityState } from '@/types/entity';
 import type { HomeAssistant } from '@hass/types';
 import { html, type TemplateResult } from 'lit';
 

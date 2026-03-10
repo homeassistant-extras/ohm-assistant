@@ -1,5 +1,5 @@
 import { hasFeature } from '@/config/feature';
-import { EntityState } from '@/types/entity';
+import type { EntityState } from '@/types/entity';
 import { getEntityIds } from '@common/helpers';
 import { stateActive } from '@hass/common/entity/state_active';
 import type { HomeAssistant } from '@hass/types';

@@ -1,7 +1,7 @@
-import { EntityState } from '@/types/entity';
+import type { EntityState } from '@/types/entity';
 import { computeDomain } from '@hass/common/entity/compute_domain';
-import memoizeOne from 'memoize-one';
 import type { Config } from '@type/config';
+import memoizeOne from 'memoize-one';
 
 /**
  * Retrieves the state of an entity
@@ -28,10 +28,7 @@ export const getState = memoizeOne(
     // Apply custom name from config when entity has one defined
     if (config?.entities) {
       const entityConfig = config.entities.find(
-        (e) =>
-          typeof e === 'object' &&
-          e.entity_id === entityId &&
-          e.name,
+        (e) => typeof e === 'object' && e.entity_id === entityId && e.name,
       );
       if (entityConfig && typeof entityConfig === 'object') {
         attributes = { ...attributes, friendly_name: entityConfig.name };

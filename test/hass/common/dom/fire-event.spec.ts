@@ -1,7 +1,7 @@
-import { fireEvent } from '@hass/common/dom/fire_event';
-import type { ConfigChangedEvent } from '@hass/panels/lovelace/editor/hui-element-editor';
 import { expect } from 'chai';
 import { stub } from 'sinon';
+import { fireEvent } from '../../../../src/hass/common/dom/fire_event';
+import type { ConfigChangedEvent } from '../../../../src/hass/panels/lovelace/editor/hui-element-editor';
 
 describe('fire-event.ts', () => {
   let element: HTMLElement;

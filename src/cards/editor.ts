@@ -1,9 +1,11 @@
+import type { SubElementEditorConfig } from '@cards/components/editor/sub-element-editor';
+import { getAreaPowerEnergyEntities } from '@common/helpers';
 import type { HomeAssistant } from '@hass/types';
-import type { Config } from '@type/config';
+import type { Config, EntityConfig } from '@type/config';
 import { LitElement, html, nothing, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { fireEvent } from '../hass/common/dom/fire_event';
-import { HaFormSchema } from '../hass/components/ha-form/types';
+import type { HaFormSchema } from '../hass/components/ha-form/types';
 
 export class AreaEnergyEditor extends LitElement {
   @state()
@@ -11,6 +13,9 @@ export class AreaEnergyEditor extends LitElement {
 
   @state()
   private _hass!: HomeAssistant;
+
+  @state()
+  private _subElementEditorConfig?: SubElementEditorConfig;
 
   setConfig(config: Config): void {
     this._config = config;
@@ -29,9 +34,36 @@ export class AreaEnergyEditor extends LitElement {
       return nothing;
     }
 
+    if (this._subElementEditorConfig) {
+      return html`
+        <ohm-assistant-sub-element-editor
+          .hass=${this._hass}
+          .config=${this._subElementEditorConfig}
+          @go-back=${this._goBack}
+          @config-changed=${this._handleSubElementChanged}
+        ></ohm-assistant-sub-element-editor>
+      `;
+    }
+
     const schema = this._getSchema();
+    const availableEntities =
+      this._config.area && this._hass.entities
+        ? getAreaPowerEnergyEntities(this._hass, this._config.area)
+        : undefined;
 
     return html`
+      <div class="entities-section">
+        <ohm-assistant-entities-row-editor
+          .hass=${this._hass}
+          .entities=${this._config.entities}
+          .availableEntities=${availableEntities}
+          label=${this._hass.localize(
+            'ui.panel.lovelace.editor.card.generic.entities',
+          ) || 'Entities'}
+          @value-changed=${this._entitiesRowChanged}
+          @edit-detail-element=${this._editDetailElement}
+        ></ohm-assistant-entities-row-editor>
+      </div>
       <ha-form
         .hass=${this._hass}
         .data=${this._config}
@@ -61,28 +93,6 @@ export class AreaEnergyEditor extends LitElement {
             name: 'name',
             label: 'Card Name',
             selector: { text: {} },
-          },
-        ],
-      },
-      {
-        name: 'entities',
-        label: 'Entities',
-        type: 'expandable' as const,
-        flatten: true,
-        icon: 'mdi:devices',
-        schema: [
-          {
-            name: 'entities',
-            label: 'Entities',
-            required: true,
-            selector: {
-              entity: {
-                multiple: true,
-                filter: {
-                  device_class: ['power', 'energy'],
-                },
-              },
-            },
           },
         ],
       },
@@ -243,13 +253,67 @@ export class AreaEnergyEditor extends LitElement {
     ];
   }
 
-  private _computeLabel = (schema: HaFormSchema): string => {
+  private readonly _computeLabel = (schema: HaFormSchema): string => {
     return schema.label || schema.name;
   };
 
   private _valueChanged(ev: CustomEvent): void {
-    const config = ev.detail.value as Config;
+    const formValue = ev.detail.value as Config;
+    const config: Config = { ...formValue };
+    if (this._config.entities !== undefined) {
+      config.entities = this._config.entities;
+    }
+    this._config = config;
     // @ts-ignore
     fireEvent(this, 'config-changed', { config });
+  }
+
+  private _entitiesRowChanged(ev: CustomEvent): void {
+    const value = ev.detail.value;
+    if (!Array.isArray(value)) {
+      return;
+    }
+    this._config = { ...this._config, entities: value };
+    // @ts-ignore
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _editDetailElement(ev: CustomEvent): void {
+    this._subElementEditorConfig = { ...ev.detail.subElementConfig };
+  }
+
+  private _handleSubElementChanged(ev: CustomEvent): void {
+    ev.stopPropagation();
+    if (!this._config || !this._subElementEditorConfig) {
+      return;
+    }
+
+    const value = ev.detail.config as EntityConfig | string;
+    const index = this._subElementEditorConfig.index!;
+    const newEntities = (this._config.entities || []).concat();
+
+    if (value) {
+      newEntities[index] = value;
+      this._subElementEditorConfig = {
+        ...this._subElementEditorConfig,
+        elementConfig: value,
+      };
+    } else {
+      newEntities.splice(index, 1);
+      this._subElementEditorConfig = undefined;
+    }
+
+    this._config = { ...this._config, entities: newEntities };
+
+    if (!value) {
+      this._goBack();
+    }
+
+    // @ts-ignore
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _goBack(): void {
+    this._subElementEditorConfig = undefined;
   }
 }

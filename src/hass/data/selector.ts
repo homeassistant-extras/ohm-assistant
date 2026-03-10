@@ -10,7 +10,8 @@ export type Selector =
   | NumberSelector
   | ObjectSelector
   | SelectSelector
-  | StringSelector;
+  | StringSelector
+  | UiColorSelector;
 
 export interface AreaSelector {
   area: {};
@@ -88,4 +89,12 @@ export interface StringSelector {
       | 'color';
     suffix?: string;
   };
+}
+
+export interface UiColorSelector {
+  ui_color: {
+    default_color?: string;
+    include_none?: boolean;
+    include_state?: boolean;
+  } | null;
 }
