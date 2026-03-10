@@ -24,7 +24,7 @@ export function renderLegend(
   entityColorMap: Record<string, string> = {},
   untrackedPowerData?: EntityData,
 ): TemplateResult | typeof nothing {
-  if (!((config.chart?.legend_style || 'entities') === 'entities')) {
+  if ((config.chart?.legend_style || 'entities') !== 'entities') {
     return nothing;
   }
 

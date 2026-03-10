@@ -8,6 +8,44 @@ export interface HistoryDataPoint {
   value: number;
 }
 
+/** Timestamp that can be a Date instance or ISO string */
+type DateOrString = Date | string;
+
+/** Statistics aggregation period */
+type StatisticsPeriod = '5minute' | 'hour' | 'day' | 'month';
+
+type StatRecord = {
+  start: number;
+  end: number;
+  mean?: number;
+  min?: number;
+  max?: number;
+  sum?: number;
+  state?: number;
+};
+
+function toIsoString(date: DateOrString): string {
+  return typeof date === 'string' ? date : date.toISOString();
+}
+
+function extractStatValue(stat: StatRecord): number | null {
+  const value = stat.mean ?? stat.state ?? stat.sum ?? null;
+  return value != null && !isNaN(value) ? value : null;
+}
+
+function statStartToMs(start: number): number {
+  return start > 946684800000 ? start : start * 1000;
+}
+
+function statToDataPoint(stat: StatRecord): HistoryDataPoint | null {
+  const value = extractStatValue(stat);
+  if (value === null) return null;
+  return {
+    timestamp: new Date(statStartToMs(stat.start)),
+    value,
+  };
+}
+
 /**
  * Fetch aggregated statistics for an entity
  * This uses Home Assistant's statistics API which returns data aggregated into periods
@@ -20,35 +58,15 @@ export interface HistoryDataPoint {
 export async function fetchEntityStatistics(
   hass: HomeAssistant,
   entityId: string,
-  startTime: Date | string,
-  endTime?: Date | string,
-  period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+  startTime: DateOrString,
+  endTime?: DateOrString,
+  period: StatisticsPeriod = '5minute',
 ): Promise<HistoryDataPoint[]> {
   try {
-    // Convert dates to ISO strings
-    const start =
-      typeof startTime === 'string' ? startTime : startTime.toISOString();
-    const end = endTime
-      ? typeof endTime === 'string'
-        ? endTime
-        : endTime.toISOString()
-      : new Date().toISOString();
+    const start = toIsoString(startTime);
+    const end = endTime ? toIsoString(endTime) : new Date().toISOString();
 
-    // Use WebSocket API for statistics
-    const statsData = await hass.callWS<
-      Record<
-        string,
-        Array<{
-          start: number;
-          end: number;
-          mean?: number;
-          min?: number;
-          max?: number;
-          sum?: number;
-          state?: number;
-        }>
-      >
-    >({
+    const statsData = await hass.callWS<Record<string, StatRecord[]>>({
       type: 'recorder/statistics_during_period',
       start_time: start,
       end_time: end,
@@ -56,39 +74,15 @@ export async function fetchEntityStatistics(
       period: period,
     });
 
-    // Extract statistics for the entity
     const entityStats = statsData[entityId];
-    if (!entityStats || entityStats.length === 0) {
+    if (!entityStats?.length) {
       console.warn(`No statistics data for ${entityId}`);
       return [];
     }
 
-    const dataPoints: HistoryDataPoint[] = [];
-
-    for (const stat of entityStats) {
-      // Use mean if available, otherwise state, otherwise sum
-      const value =
-        stat.mean !== undefined
-          ? stat.mean
-          : stat.state !== undefined
-            ? stat.state
-            : stat.sum !== undefined
-              ? stat.sum
-              : null;
-
-      if (value !== null && !isNaN(value)) {
-        // The stat.start value can be in seconds or milliseconds depending on HA version
-        // Check if it's already in milliseconds (> year 2000 in seconds = 946684800)
-        const timestampMs =
-          stat.start > 946684800000 ? stat.start : stat.start * 1000;
-        dataPoints.push({
-          timestamp: new Date(timestampMs),
-          value,
-        });
-      }
-    }
-
-    return dataPoints;
+    return entityStats
+      .map((stat) => statToDataPoint(stat))
+      .filter((p): p is HistoryDataPoint => p !== null);
   } catch (error) {
     console.error(`Failed to fetch statistics for ${entityId}:`, error);
     return [];
@@ -106,7 +100,7 @@ export async function fetchRecentStatistics(
   hass: HomeAssistant,
   entityId: string,
   hours: number,
-  period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+  period: StatisticsPeriod = '5minute',
 ): Promise<HistoryDataPoint[]> {
   const now = new Date();
   const start = new Date(now.getTime() - hours * 60 * 60 * 1000);
@@ -140,7 +134,7 @@ export async function fetchPowerEnergyData(
   powerEntities: EntityState[],
   energyEntities: EntityState[],
   hours: number = 24,
-  period: '5minute' | 'hour' | 'day' | 'month' = '5minute',
+  period: StatisticsPeriod = '5minute',
   totalPowerEntityId?: string,
 ): Promise<PowerEnergyData> {
   // Fetch data for all power and energy entities

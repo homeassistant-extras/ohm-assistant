@@ -142,9 +142,6 @@ export class ChartConfigBuilder {
       entityColorMap = {},
     } = options;
 
-    // Capture 'this' for use in callbacks
-    const builder = this;
-
     // Use smooth curves with stepped lines for energy data
     const powerTension = 0.4; // smooth curves for power
     const energyTension = 0; // straight lines for energy
@@ -188,24 +185,24 @@ export class ChartConfigBuilder {
           // Line chart configuration
           powerDataset.borderColor =
             lineType === 'gradient' || lineType === 'gradient_no_fill'
-              ? function (context: any) {
+              ? (context: any) => {
                   const chart = context.chart;
                   const { ctx, chartArea } = chart;
                   if (!chartArea) {
                     return entityColor;
                   }
-                  return builder.getPowerGradient(ctx, chartArea, lineType);
+                  return this.getPowerGradient(ctx, chartArea, lineType);
                 }
               : entityColor;
           powerDataset.backgroundColor =
             lineType === 'gradient'
-              ? function (context: any) {
+              ? (context: any) => {
                   const chart = context.chart;
                   const { ctx, chartArea } = chart;
                   if (!chartArea) {
                     return entityColor.replace('0.8', '0.1');
                   }
-                  return builder.getPowerGradient(ctx, chartArea, lineType);
+                  return this.getPowerGradient(ctx, chartArea, lineType);
                 }
               : lineType === 'gradient_no_fill' || lineType === 'no_fill'
                 ? 'transparent'
@@ -306,24 +303,24 @@ export class ChartConfigBuilder {
           // Line chart configuration
           energyDataset.borderColor =
             lineType === 'gradient' || lineType === 'gradient_no_fill'
-              ? function (context: any) {
+              ? (context: any) => {
                   const chart = context.chart;
                   const { ctx, chartArea } = chart;
                   if (!chartArea) {
                     return entityColor;
                   }
-                  return builder.getEnergyGradient(ctx, chartArea, lineType);
+                  return this.getEnergyGradient(ctx, chartArea, lineType);
                 }
               : entityColor;
           energyDataset.backgroundColor =
             lineType === 'gradient'
-              ? function (context: any) {
+              ? (context: any) => {
                   const chart = context.chart;
                   const { ctx, chartArea } = chart;
                   if (!chartArea) {
                     return entityColor.replace('0.8', '0.2');
                   }
-                  return builder.getEnergyGradient(ctx, chartArea, lineType);
+                  return this.getEnergyGradient(ctx, chartArea, lineType);
                 }
               : lineType === 'gradient_no_fill' || lineType === 'no_fill'
                 ? 'transparent'
@@ -382,7 +379,7 @@ export class ChartConfigBuilder {
         },
         scales: {
           x: {
-            type: chartType === 'stacked_bar' ? 'time' : 'time',
+            type: 'time',
             display: !hideXAxis,
             stacked:
               chartType === 'stacked_bar' || chartType === 'stacked_line',
