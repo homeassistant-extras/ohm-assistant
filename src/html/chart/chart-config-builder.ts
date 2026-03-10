@@ -148,6 +148,13 @@ export class ChartConfigBuilder {
     const powerStepped = false; // smooth for power
     const energyStepped = 'before'; // stepped for energy
 
+    // Conditionally show axes: Power axis only when power data exists,
+    // Energy axis only when energy data exists (fixes #28)
+    const hasPowerData =
+      powerData.some((e) => e.data.length > 0) ||
+      Boolean(untrackedPowerData?.data?.length);
+    const hasEnergyData = energyData.some((e) => e.data.length > 0);
+
     // Prepare datasets
     const datasets: any[] = [];
 
@@ -421,42 +428,42 @@ export class ChartConfigBuilder {
           },
           y: {
             type: 'linear',
-            display: !hideYAxis,
+            display: !hideYAxis && hasPowerData,
             position: 'left',
             stacked:
               chartType === 'stacked_bar' || chartType === 'stacked_line',
             title: {
-              display: !hideYAxis,
+              display: !hideYAxis && hasPowerData,
               text: 'Power (W)',
               color: 'rgba(59, 130, 246, 0.8)',
             },
             grid: {
               color: 'rgba(0, 0, 0, 0.05)',
-              display: !hideYAxis,
+              display: !hideYAxis && hasPowerData,
             },
             ticks: {
               color: '#666',
-              display: !hideYAxis,
+              display: !hideYAxis && hasPowerData,
             },
           },
           y1: {
             type: 'linear',
-            display: !hideYAxis,
+            display: !hideYAxis && hasEnergyData,
             position: 'right',
             stacked:
               chartType === 'stacked_bar' || chartType === 'stacked_line',
             title: {
-              display: !hideYAxis,
+              display: !hideYAxis && hasEnergyData,
               text: 'Energy (kWh)',
               color: 'rgba(16, 185, 129, 0.8)',
             },
             grid: {
               drawOnChartArea: false,
-              display: !hideYAxis,
+              display: !hideYAxis && hasEnergyData,
             },
             ticks: {
               color: '#666',
-              display: !hideYAxis,
+              display: !hideYAxis && hasEnergyData,
             },
           },
         },

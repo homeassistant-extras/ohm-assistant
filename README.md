@@ -75,7 +75,7 @@ A modern, professional Home Assistant custom card for displaying electricity usa
   - Perfect for identifying phantom loads and unmetered devices
 - **Multiple Line Types** - Choose from normal, gradient, gradient-no-fill, or no-fill line styles
 - **Customizable Legends** - Configure legend display (entities, compact, or none)
-- **Axis Control** - Show/hide X and Y axes independently
+- **Axis Control** - Show/hide X and Y axes independently. Power (W) and Energy (kWh) axes are only displayed when their data is present.
 - **Time-based Data** - Automatic time scaling with proper date/time formatting
 
 ![No Fill](assets/no-fill.png)
@@ -234,7 +234,7 @@ Entities without custom colors will use the default color scheme based on their 
 | chart_type         | string | line     | Chart type: line (detailed), stacked_bar (overview), or stacked_line (stacked lines) |
 | total_power_entity | string | _none_   | Total power entity ID for untracked power visualization (stacked charts only)        |
 | legend_style       | string | entities | Legend display style: entities, compact, none                                        |
-| axis_style         | string | all      | Axis display: all, x_only, y_only, none                                              |
+| axis_style         | string | all      | Axis display: all, x_only, y_only, none. Power/Energy axes are only shown when their data is present. |
 | line_type          | string | normal   | Line style: normal, gradient, gradient_no_fill, no_fill                              |
 
 ### Feature Flags
@@ -383,6 +383,7 @@ _Coming soon - screenshots of the card in action will be added here._
 - [x] **`TypeScript support`**: Full type safety and modern development
 - [x] **`UI improvements`**: Tweaks and changes for the UI - thanks @LamarcLS
 - [x] **`Custom entity colors and name`**: Choose colors/name for individual chart items - thanks @LamarcLS, @frankfrommelt
+- [x] **`Conditional axis display`**: Show Power/Energy axes only when their data is displayed - thanks @frankfrommelt
 - [x] **`Chart type selection`**: Line and Stacked Bar chart options - thanks @LamarcLS
 - [x] **`Untracked power visualization`**: Visualize power consumption not tracked by individual entities - thanks @LamarcLS
 

@@ -294,6 +294,12 @@ describe('ChartConfigBuilder', () => {
 
       expect(config.data.datasets).to.be.an('array');
       expect(config.data.datasets).to.have.length(0);
+      // Both axes hidden when no data
+      expect((config.options as any).scales.y).to.have.property('display', false);
+      expect((config.options as any).scales.y1).to.have.property(
+        'display',
+        false,
+      );
     });
 
     it('should handle entities with no data', () => {
@@ -318,6 +324,42 @@ describe('ChartConfigBuilder', () => {
       expect(config.data.datasets).to.have.length(1); // Only power2 has data
       const dataset = config.data.datasets[0];
       expect(dataset).to.have.property('label', 'Power 2 (W)');
+      // Power axis shown (has data), energy axis hidden (no data)
+      expect((config.options as any).scales.y).to.have.property(
+        'display',
+        true,
+      );
+      expect((config.options as any).scales.y1).to.have.property(
+        'display',
+        false,
+      );
+    });
+
+    it('should hide power axis when only energy data is displayed', () => {
+      const builder = new ChartConfigBuilder();
+      const energyOnlyData = {
+        powerData: [
+          { entityId: 'sensor.power1', friendlyName: 'Power 1', data: [] },
+        ],
+        energyData: [
+          {
+            entityId: 'sensor.energy1',
+            friendlyName: 'Energy 1',
+            data: [{ timestamp: new Date(), value: 1.5 }],
+          },
+        ],
+      };
+
+      const config = builder.build(energyOnlyData);
+
+      expect((config.options as any).scales.y).to.have.property(
+        'display',
+        false,
+      );
+      expect((config.options as any).scales.y1).to.have.property(
+        'display',
+        true,
+      );
     });
 
     it('should configure tooltip correctly', () => {

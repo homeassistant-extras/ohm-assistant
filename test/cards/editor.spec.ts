@@ -104,13 +104,13 @@ describe('editor.ts', () => {
       expect(template.values).to.be.an('array');
     });
 
-    it('should return exact schema from _getSchema', () => {
+    it('should return exact schema from _getAreaSchema', () => {
       const testConfig: Config = {
         area: 'living_room',
       };
       card.setConfig(testConfig);
 
-      const schema = card['_getSchema']();
+      const schema = card['_getAreaSchema']();
 
       const expectedSchema = [
         {
@@ -119,6 +119,20 @@ describe('editor.ts', () => {
           required: true,
           selector: { area: {} },
         },
+      ];
+
+      expect(JSON.stringify(schema)).to.equal(JSON.stringify(expectedSchema));
+    });
+
+    it('should return exact schema from _getRestSchema', () => {
+      const testConfig: Config = {
+        area: 'living_room',
+      };
+      card.setConfig(testConfig);
+
+      const schema = card['_getRestSchema']();
+
+      const expectedRestSchema = [
         {
           name: 'content',
           label: 'Content',
@@ -289,7 +303,7 @@ describe('editor.ts', () => {
         },
       ];
 
-      expect(JSON.stringify(schema)).to.equal(JSON.stringify(expectedSchema));
+      expect(JSON.stringify(schema)).to.equal(JSON.stringify(expectedRestSchema));
     });
   });
 

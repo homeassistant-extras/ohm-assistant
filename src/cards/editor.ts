@@ -2,12 +2,24 @@ import type { SubElementEditorConfig } from '@cards/components/editor/sub-elemen
 import { getAreaPowerEnergyEntities } from '@common/helpers';
 import type { HomeAssistant } from '@hass/types';
 import type { Config, EntityConfig } from '@type/config';
-import { LitElement, html, nothing, type TemplateResult } from 'lit';
+import { LitElement, html, nothing, css, type CSSResult, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { fireEvent } from '../hass/common/dom/fire_event';
 import type { HaFormSchema } from '../hass/components/ha-form/types';
 
 export class AreaEnergyEditor extends LitElement {
+  static override readonly styles: CSSResult = css`
+    .entities-tab {
+      padding: 16px 0;
+      gap: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .entities-tab ha-form {
+      padding: 16px 0;
+    }
+  `;
   @state()
   private _config!: Config;
 
@@ -45,14 +57,20 @@ export class AreaEnergyEditor extends LitElement {
       `;
     }
 
-    const schema = this._getSchema();
     const availableEntities =
       this._config.area && this._hass.entities
         ? getAreaPowerEnergyEntities(this._hass, this._config.area)
         : undefined;
 
     return html`
-      <div class="entities-section">
+      <div class="entities-tab">
+        <ha-form
+          .hass=${this._hass}
+          .data=${this._config}
+          .schema=${this._getAreaSchema()}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${this._valueChanged}
+        ></ha-form>
         <ohm-assistant-entities-row-editor
           .hass=${this._hass}
           .entities=${this._config.entities}
@@ -63,18 +81,18 @@ export class AreaEnergyEditor extends LitElement {
           @value-changed=${this._entitiesRowChanged}
           @edit-detail-element=${this._editDetailElement}
         ></ohm-assistant-entities-row-editor>
+        <ha-form
+          .hass=${this._hass}
+          .data=${this._config}
+          .schema=${this._getRestSchema()}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${this._valueChanged}
+        ></ha-form>
       </div>
-      <ha-form
-        .hass=${this._hass}
-        .data=${this._config}
-        .schema=${schema}
-        .computeLabel=${this._computeLabel}
-        @value-changed=${this._valueChanged}
-      ></ha-form>
     `;
   }
 
-  private _getSchema(): HaFormSchema[] {
+  private _getAreaSchema(): HaFormSchema[] {
     return [
       {
         name: 'area',
@@ -82,6 +100,11 @@ export class AreaEnergyEditor extends LitElement {
         required: true,
         selector: { area: {} },
       },
+    ];
+  }
+
+  private _getRestSchema(): HaFormSchema[] {
+    return [
       {
         name: 'content',
         label: 'Content',
@@ -258,8 +281,8 @@ export class AreaEnergyEditor extends LitElement {
   };
 
   private _valueChanged(ev: CustomEvent): void {
-    const formValue = ev.detail.value as Config;
-    const config: Config = { ...formValue };
+    const formValue = ev.detail.value as Partial<Config>;
+    const config: Config = { ...this._config, ...formValue };
     if (this._config.entities !== undefined) {
       config.entities = this._config.entities;
     }
