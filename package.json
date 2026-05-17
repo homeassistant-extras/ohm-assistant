@@ -2,9 +2,19 @@
   "name": "ohm-assistant",
   "version": "0.6.0",
   "description": "A modern Home Assistant card for displaying energy usage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/homeassistant-extras/ohm-assistant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/homeassistant-extras/ohm-assistant/issues"
+  },
   "source": "src/index.ts",
   "module": "dist/ohm-assistant.js",
-  "author": "Patrick Masters",
+  "author": {
+    "name": "Patrick Masters",
+    "url": "https://curiouscat.consulting/projects/ha-ohm-assistant?utm_source=github-ohm-assistant&utm_medium=package-metadata&utm_campaign=oss-presence&utm_content=author-url"
+  },
   "license": "MIT",
   "keywords": [
     "home-assistant",
