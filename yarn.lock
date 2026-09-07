@@ -1435,10 +1435,10 @@
   resolved "https://registry.npmjs.org/@types/mocha/-/mocha-10.0.10.tgz"
   integrity sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==
 
-"@types/node@^26.1.1":
-  version "26.1.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.1.1.tgz#bad758d601e97d6cf457d204ee76a35fce7bd119"
-  integrity sha512-nxAkRSVkN1Y0JC1W8ky/fTfkGsMmcrRsbx+3XoZE+rMOX71kLYTV7fLXpqud1GpbpP5TuffXFqfX7fH2GgZREw==
+"@types/node@^26.4.1":
+  version "26.4.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.4.1.tgz#3d8dc80515894958448ee266cf5d6bc3e5205bd5"
+  integrity sha512-k97ENvZWtvA6yqz5/FS6a7duDgOPEeOQOc2iKS/nY6mX6qJUKtLnWzQS+Xj6tXweyj6ZcTAK2Qecetnvi9nCLA==
   dependencies:
     undici-types "~8.3.0"
 
